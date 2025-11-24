@@ -22,6 +22,7 @@
                 @if (Model.Seller != null)
                 {
                     <p><strong>Seller:</strong> @Model.Seller.Contact.Name</p>
+                    <p><a class="btn btn-sm btn-outline-primary" asp-controller="Sellers" asp-action="Profile" asp-route-id="@Model.SellerId">Seller Profile</a></p>
                     <p><strong>Contact:</strong> @Model.Seller.Contact.Email, @Model.Seller.Contact.Phone</p>
                 }
                 @if (Model.Images.Any())
@@ -37,6 +38,13 @@
             <div class="card-footer bg-white border-0 d-flex gap-2">
                 <a class="btn btn-primary" asp-action="Buy" asp-route-id="@Model.Id">Buy</a>
                 <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+                <form asp-controller="Wishlist" asp-action="Add" method="post" class="d-inline">
+                    <input type="hidden" name="bookId" value="@Model.Id" />
+                    <input class="form-control form-control-sm" name="contact.Name" placeholder="Your name" />
+                    <input class="form-control form-control-sm" name="contact.Email" placeholder="Your email" />
+                    <input class="form-control form-control-sm" name="contact.Phone" placeholder="Your phone" />
+                    <button class="btn btn-sm btn-outline-secondary" type="submit">Add to Wishlist</button>
+                </form>
                 <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
                     <input type="hidden" name="status" value="@Marketplace.Models.BookStatus.Sold" />
                     <button class="btn btn-outline-danger" type="submit">Mark Sold</button>

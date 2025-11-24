@@ -1,8 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using FluentValidation.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddAuthentication("AdminAuth").AddCookie("AdminAuth", options =>
 {
     options.LoginPath = "/Admin/Login";
@@ -15,6 +19,8 @@ builder.Services.AddDbContext<Marketplace.Data.MarketplaceDbContext>(options =>
     options.UseSqlite(conn);
 });
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<Marketplace.Services.IBookService, Marketplace.Services.BookService>();
+builder.Services.AddScoped<Marketplace.Services.IPurchaseService, Marketplace.Services.PurchaseService>();
 
 var app = builder.Build();
 

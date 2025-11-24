@@ -45,6 +45,10 @@ else
                             <select class="form-select form-select-sm" name="status" asp-items="Html.GetEnumSelectList<Marketplace.Models.PurchaseRequestStatus>()"></select>
                             <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
                         </form>
+                        @if (r.Status == Marketplace.Models.PurchaseRequestStatus.Completed)
+                        {
+                            <a class="btn btn-sm btn-success mt-2" asp-controller="Ratings" asp-action="Create" asp-route-purchaseRequestId="@r.Id">Collect Rating</a>
+                        }
                     </td>
                     <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
                 </tr>

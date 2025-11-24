@@ -1,0 +1,28 @@
+@model Marketplace.Models.Seller
+@{
+    ViewData["Title"] = "Seller Profile";
+    var avg = (double)ViewData["Avg"]!;
+    var books = (IEnumerable<Marketplace.Models.Book>)ViewData["Books"]!;
+}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h4">@Model.Contact.Name</h1>
+                <p class="text-muted">@Model.Contact.Email | @Model.Contact.Phone</p>
+                <p><strong>Average Rating:</strong> @avg.ToString("0.0") ⭐</p>
+                <h5 class="mt-4">Listings</h5>
+                <ul class="list-group">
+                    @foreach (var b in books)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>@b.Title — @b.Author</span>
+                            <a class="btn btn-sm btn-outline-primary" asp-controller="Books" asp-action="Details" asp-route-id="@b.Id">View</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+}</div>
+

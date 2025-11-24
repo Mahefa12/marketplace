@@ -25,6 +25,22 @@
         <button class="btn btn-outline-secondary" type="submit">Apply</button>
     </div>
 </form>
+<form asp-controller="SavedSearches" asp-action="Save" method="post" class="row g-2 mb-3">
+    <input type="hidden" name="q" value="@Model.Query" />
+    <input type="hidden" name="category" value="@Model.Category" />
+    <div class="col-md-3">
+        <input class="form-control" name="contact.Name" placeholder="Your name" />
+    </div>
+    <div class="col-md-3">
+        <input class="form-control" name="contact.Email" placeholder="Your email" />
+    </div>
+    <div class="col-md-3">
+        <input class="form-control" name="contact.Phone" placeholder="Your phone" />
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-outline-primary w-100" type="submit">Save This Search</button>
+    </div>
+</form>
 
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
 @foreach (var b in Model.Items)
