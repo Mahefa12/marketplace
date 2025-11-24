@@ -50,6 +50,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<Marketplace.Data.MarketplaceDbContext>();
     db.Database.Migrate();
+    await Marketplace.Data.DbSeeder.SeedAsync(db);
 }
 
 app.Run();
