@@ -1,0 +1,33 @@
+@model IEnumerable<Book>
+@{
+    ViewData["Title"] = "Browse Books";
+}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Books Marketplace</h1>
+    <a class="btn btn-primary" asp-action="Create">Sell a Book</a>
+</div>
+
+<form class="input-group mb-3" method="get">
+    <input type="text" class="form-control" placeholder="Search by title or author" name="q" value="@((string?)ViewData["Query"])">
+    <button class="btn btn-outline-secondary" type="submit">Search</button>
+</form>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+@foreach (var b in Model)
+{
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">@b.Title</h5>
+                <h6 class="card-subtitle mb-2 text-muted">by @b.Author @(!string.IsNullOrWhiteSpace(b.Version) ? $"- {b.Version}" : "")</h6>
+                <p class="card-text"><strong>Seller:</strong> @b.SellerName</p>
+            </div>
+            <div class="card-footer bg-white border-0 d-flex gap-2">
+                <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@b.Id">Details</a>
+                <a class="btn btn-sm btn-primary" asp-action="Buy" asp-route-id="@b.Id">Buy</a>
+            </div>
+        </div>
+    </div>
+}
+</div>
+

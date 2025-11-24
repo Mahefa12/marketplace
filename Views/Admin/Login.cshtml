@@ -1,0 +1,33 @@
+@{
+    ViewData["Title"] = "Admin Login";
+    var demoUser = (string)ViewData["DemoUser"]!;
+    var demoPass = (string)ViewData["DemoPass"]!;
+}
+<div class="row">
+    <div class="col-md-6 col-lg-5 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Admin Login</h1>
+                <div class="alert alert-secondary">
+                    Demo credentials: <strong>@demoUser</strong> / <strong>@demoPass</strong>
+                </div>
+                <form asp-action="Login" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Username</label>
+                        <input class="form-control" id="username" name="username" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control" id="password" name="password" type="password" />
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}</div>
+

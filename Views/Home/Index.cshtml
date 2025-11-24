@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Home";
+}
+<section class="py-5 text-center bg-light rounded-3">
+    <div class="container">
+        <h1 class="display-5 fw-bold">Book Marketplace</h1>
+        <p class="lead mb-4">Buy and sell books easily. Simple forms, instant admin updates.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a class="btn btn-primary btn-lg" asp-controller="Books" asp-action="Index">Browse Books</a>
+            <a class="btn btn-outline-secondary btn-lg" asp-controller="Books" asp-action="Create">Sell a Book</a>
+        </div>
+    </div>
+    </section>
+<section class="container py-4">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">For Sellers</h5>
+                    <p class="card-text">List your book with contact details so admins can coordinate when a buyer is found.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">For Buyers</h5>
+                    <p class="card-text">Submit your contact details; the admin will reach out to arrange exchange.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Admin Dashboard</h5>
+                    <p class="card-text">See buyer requests in real-time. Use demo login to explore.</p>
+                    <a class="btn btn-outline-primary" asp-controller="Admin" asp-action="Login">Go to Admin</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
