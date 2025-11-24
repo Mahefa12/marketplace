@@ -21,13 +21,13 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString()=="Home"?"active":"")" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Books" asp-action="Index">Browse</a>
+                            <a class="nav-link text-dark @(ViewContext.RouteData.Values["controller"]?.ToString()=="Books"?"active":"")" asp-area="" asp-controller="Books" asp-action="Index">Browse</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Books" asp-action="Create">Sell</a>
+                            <a class="nav-link text-dark @(ViewContext.RouteData.Values["action"]?.ToString()=="Create"?"active":"")" asp-area="" asp-controller="Books" asp-action="Create">Sell</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav">
@@ -53,6 +53,19 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @TempData["Success"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

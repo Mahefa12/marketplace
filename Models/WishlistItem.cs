@@ -3,25 +3,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Marketplace.Models
 {
-    public class PurchaseRequest
+    public class WishlistItem
     {
         public int Id { get; set; }
-
-        [Required]
-        public int BookId { get; set; }
-
-        public Book? Book { get; set; }
-
         [Required]
         public int BuyerId { get; set; }
-
         public Buyer? Buyer { get; set; }
-
-        public decimal? OfferPrice { get; set; }
-
         [Required]
-        public PurchaseRequestStatus Status { get; set; } = PurchaseRequestStatus.New;
-
+        public int BookId { get; set; }
+        public Book? Book { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
+

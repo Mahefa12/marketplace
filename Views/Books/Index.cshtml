@@ -1,4 +1,4 @@
-@model IEnumerable<Book>
+@model Marketplace.ViewModels.BooksIndexViewModel
 @{
     ViewData["Title"] = "Browse Books";
 }
@@ -7,20 +7,35 @@
     <a class="btn btn-primary" asp-action="Create">Sell a Book</a>
 </div>
 
-<form class="input-group mb-3" method="get">
-    <input type="text" class="form-control" placeholder="Search by title or author" name="q" value="@((string?)ViewData["Query"])">
-    <button class="btn btn-outline-secondary" type="submit">Search</button>
+<form class="row g-3 mb-3" method="get">
+    <div class="col-md-6">
+        <input type="text" class="form-control" placeholder="Search by title or author" name="q" value="@Model.Query">
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" name="sort" value="@Model.Sort">
+            <option value="newest">Newest</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input type="text" class="form-control" name="category" placeholder="Category" value="@Model.Category">
+    </div>
+    <div class="col-12">
+        <button class="btn btn-outline-secondary" type="submit">Apply</button>
+    </div>
 </form>
 
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-@foreach (var b in Model)
+@foreach (var b in Model.Items)
 {
     <div class="col">
         <div class="card h-100 shadow-sm">
             <div class="card-body">
                 <h5 class="card-title">@b.Title</h5>
                 <h6 class="card-subtitle mb-2 text-muted">by @b.Author @(!string.IsNullOrWhiteSpace(b.Version) ? $"- {b.Version}" : "")</h6>
-                <p class="card-text"><strong>Seller:</strong> @b.SellerName</p>
+                <p class="card-text"><strong>Price:</strong> @b.Price</p>
+                <p class="card-text"><strong>Condition:</strong> @b.Condition</p>
             </div>
             <div class="card-footer bg-white border-0 d-flex gap-2">
                 <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@b.Id">Details</a>
@@ -29,5 +44,16 @@
         </div>
     </div>
 }
-</div>
 
+<nav class="mt-3">
+    <ul class="pagination">
+        @for (var p = 1; p <= Model.TotalPages; p++)
+        {
+            var active = p == Model.Page ? "active" : "";
+            <li class="page-item @active">
+                <a class="page-link" href="?q=@Model.Query&sort=@Model.Sort&category=@Model.Category&page=@p">@p</a>
+            </li>
+        }
+    </ul>
+</nav>
+</div>

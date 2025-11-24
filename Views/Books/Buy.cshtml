@@ -1,4 +1,4 @@
-@model PurchaseRequest
+@model Marketplace.ViewModels.PurchaseRequestViewModel
 @{
     var book = (Book)ViewData["Book"]!;
     ViewData["Title"] = "Buy Book";
@@ -16,19 +16,23 @@
                     <input type="hidden" asp-for="BookId" />
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="mb-3">
-                        <label asp-for="BuyerName" class="form-label"></label>
-                        <input asp-for="BuyerName" class="form-control" />
-                        <span asp-validation-for="BuyerName" class="text-danger"></span>
+                        <label class="form-label">Name</label>
+                        <input asp-for="BuyerContact.Name" class="form-control" />
+                        <span asp-validation-for="BuyerContact.Name" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="BuyerEmail" class="form-label"></label>
-                        <input asp-for="BuyerEmail" class="form-control" />
-                        <span asp-validation-for="BuyerEmail" class="text-danger"></span>
+                        <label class="form-label">Email</label>
+                        <input asp-for="BuyerContact.Email" class="form-control" />
+                        <span asp-validation-for="BuyerContact.Email" class="text-danger"></span>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="BuyerPhone" class="form-label"></label>
-                        <input asp-for="BuyerPhone" class="form-control" />
-                        <span asp-validation-for="BuyerPhone" class="text-danger"></span>
+                        <label class="form-label">Phone</label>
+                        <input asp-for="BuyerContact.Phone" class="form-control" />
+                        <span asp-validation-for="BuyerContact.Phone" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Offer Price (optional)</label>
+                        <input asp-for="OfferPrice" class="form-control" />
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Submit Request</button>
@@ -43,4 +47,3 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-

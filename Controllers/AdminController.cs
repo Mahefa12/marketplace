@@ -57,10 +57,23 @@ namespace Marketplace.Controllers
         [Authorize(AuthenticationSchemes = "AdminAuth")]
         public async Task<IActionResult> Dashboard()
         {
-            var requests = await _db.PurchaseRequests.Include(r => r.Book).OrderByDescending(r => r.CreatedAt).ToListAsync();
+            var requests = await _db.PurchaseRequests.Include(r => r.Book).ThenInclude(b => b.Seller).ThenInclude(s => s.Contact)
+                .Include(r => r.Buyer).ThenInclude(b => b.Contact)
+                .OrderByDescending(r => r.CreatedAt).ToListAsync();
             return View(requests);
         }
 
+        [Authorize(AuthenticationSchemes = "AdminAuth")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRequestStatus(int id, Models.PurchaseRequestStatus status)
+        {
+            var pr = await _db.PurchaseRequests.FindAsync(id);
+            if (pr == null) return NotFound();
+            pr.Status = status;
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Dashboard));
+        }
         [Authorize(AuthenticationSchemes = "AdminAuth")]
         public async Task<IActionResult> Logout()
         {
@@ -69,4 +82,3 @@ namespace Marketplace.Controllers
         }
     }
 }
-

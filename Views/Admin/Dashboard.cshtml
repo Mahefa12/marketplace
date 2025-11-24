@@ -21,6 +21,7 @@ else
                     <th>Seller</th>
                     <th>Buyer</th>
                     <th>Contact</th>
+                    <th>Status</th>
                     <th>Requested</th>
                 </tr>
             </thead>
@@ -33,11 +34,18 @@ else
                         <div class="text-muted">@r.Book?.Author @(!string.IsNullOrWhiteSpace(r.Book?.Version) ? $"- {r.Book?.Version}" : "")</div>
                     </td>
                     <td>
-                        <div>@r.Book?.SellerName</div>
-                        <div class="text-muted small">@r.Book?.SellerEmail | @r.Book?.SellerPhone</div>
+                        <div>@r.Book?.Seller?.Contact.Name</div>
+                        <div class="text-muted small">@r.Book?.Seller?.Contact.Email | @r.Book?.Seller?.Contact.Phone</div>
                     </td>
-                    <td>@r.BuyerName</td>
-                    <td>@r.BuyerEmail | @r.BuyerPhone</td>
+                    <td>@r.Buyer?.Contact.Name</td>
+                    <td>@r.Buyer?.Contact.Email | @r.Buyer?.Contact.Phone</td>
+                    <td>
+                        <form asp-action="UpdateRequestStatus" method="post" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <select class="form-select form-select-sm" name="status" asp-items="Html.GetEnumSelectList<Marketplace.Models.PurchaseRequestStatus>()"></select>
+                            <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
+                        </form>
+                    </td>
                     <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
                 </tr>
             }
@@ -45,4 +53,3 @@ else
         </table>
     </div>
 }
-

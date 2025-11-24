@@ -1,13 +1,14 @@
 @model Marketplace.ViewModels.BookCreateViewModel
 @{
-    ViewData["Title"] = "Sell a Book";
+    ViewData["Title"] = "Edit Listing";
+    var bookId = (int)ViewData["BookId"]!;
 }
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h1 class="h4 mb-3">List Your Book</h1>
-                <form asp-action="Create" method="post">
+                <h1 class="h4 mb-3">Edit Listing</h1>
+                <form asp-action="Edit" asp-route-id="@bookId" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <div class="mb-3">
                         <label asp-for="Title" class="form-label"></label>
@@ -74,8 +75,8 @@
                         <textarea asp-for="ImageUrls" class="form-control" rows="3"></textarea>
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">List Book</button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a asp-action="Details" asp-route-id="@bookId" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -86,3 +87,4 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
+

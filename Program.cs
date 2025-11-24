@@ -14,6 +14,7 @@ builder.Services.AddDbContext<Marketplace.Data.MarketplaceDbContext>(options =>
     var conn = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=marketplace.db";
     options.UseSqlite(conn);
 });
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
@@ -42,7 +43,7 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<Marketplace.Data.MarketplaceDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 
 app.Run();

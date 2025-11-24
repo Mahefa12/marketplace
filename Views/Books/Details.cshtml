@@ -13,14 +13,36 @@
                 }
                 <h1 class="h4">@Model.Title</h1>
                 <p class="text-muted">by @Model.Author @(!string.IsNullOrWhiteSpace(Model.Version) ? $"- {Model.Version}" : "")</p>
-                <p><strong>Seller:</strong> @Model.SellerName</p>
-                <p><strong>Contact:</strong> @Model.SellerEmail, @Model.SellerPhone</p>
+                <p><strong>Price:</strong> @Model.Price</p>
+                <p><strong>Condition:</strong> @Model.Condition</p>
+                <p><strong>Category:</strong> @Model.Category</p>
+                <p><strong>Location:</strong> @Model.Location</p>
+                <p>@Model.Description</p>
+                <p><strong>Status:</strong> @Model.Status</p>
+                @if (Model.Seller != null)
+                {
+                    <p><strong>Seller:</strong> @Model.Seller.Contact.Name</p>
+                    <p><strong>Contact:</strong> @Model.Seller.Contact.Email, @Model.Seller.Contact.Phone</p>
+                }
+                @if (Model.Images.Any())
+                {
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                        @foreach (var img in Model.Images)
+                        {
+                            <img src="@img.Url" alt="@Model.Title" class="rounded" style="width:120px;height:auto;object-fit:cover;" />
+                        }
+                    </div>
+                }
             </div>
             <div class="card-footer bg-white border-0 d-flex gap-2">
                 <a class="btn btn-primary" asp-action="Buy" asp-route-id="@Model.Id">Buy</a>
+                <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+                <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <input type="hidden" name="status" value="@Marketplace.Models.BookStatus.Sold" />
+                    <button class="btn btn-outline-danger" type="submit">Mark Sold</button>
+                </form>
                 <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
             </div>
         </div>
     </div>
 }</div>
-

@@ -1,13 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Marketplace.Models;
 
-namespace Marketplace.Models
+namespace Marketplace.ViewModels
 {
-    public class Book
+    public class BookCreateViewModel
     {
-        public int Id { get; set; }
-
         [Required]
         [StringLength(200)]
         public string Title { get; set; } = string.Empty;
@@ -35,16 +33,9 @@ namespace Marketplace.Models
         public string? Description { get; set; }
 
         [Required]
-        public BookStatus Status { get; set; } = BookStatus.Active;
+        public ContactInfo SellerContact { get; set; } = new ContactInfo();
 
-        [Required]
-        public int SellerId { get; set; }
-
-        public Seller? Seller { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        public ICollection<BookImage> Images { get; set; } = new List<BookImage>();
-        public ICollection<PurchaseRequest> PurchaseRequests { get; set; } = new List<PurchaseRequest>();
+        public List<string> ImageUrls { get; set; } = new List<string>();
     }
 }
+
