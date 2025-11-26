@@ -38,9 +38,7 @@ namespace Marketplace.Models
         public BookStatus Status { get; set; } = BookStatus.Active;
 
         [Required]
-        public int SellerId { get; set; }
-
-        public Seller? Seller { get; set; }
+        public string SellerId { get; set; } = string.Empty;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

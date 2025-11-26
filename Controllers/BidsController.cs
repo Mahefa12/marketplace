@@ -2,8 +2,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Marketplace.Data;
 using Marketplace.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Marketplace.Controllers
 {
@@ -18,8 +20,9 @@ namespace Marketplace.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PlaceBid(int bookId, decimal amount, string buyerName, string buyerEmail, string buyerPhone)
+        public async Task<IActionResult> PlaceBid(int bookId, decimal amount)
         {
             var book = await _db.Books
                 .Include(b => b.Bids)
@@ -28,8 +31,8 @@ namespace Marketplace.Controllers
             if (book == null) return NotFound();
 
             // Get current highest bid or starting price
-            var currentHighest = book.Bids.Any() 
-                ? book.Bids.Max(b => b.Amount) 
+            var currentHighest = book.Bids.Any()
+                ? book.Bids.Max(b => b.Amount)
                 : book.Price;
 
             // Validate bid amount
@@ -39,24 +42,14 @@ namespace Marketplace.Controllers
                 return RedirectToAction("Details", "Books", new { id = bookId });
             }
 
-            // Create or find buyer
-            var buyer = new Buyer 
-            { 
-                Contact = new ContactInfo 
-                { 
-                    Name = buyerName, 
-                    Email = buyerEmail, 
-                    Phone = buyerPhone 
-                } 
-            };
-            _db.Buyers.Add(buyer);
-            await _db.SaveChangesAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
 
             // Create bid
             var bid = new Bid
             {
                 BookId = bookId,
-                BidderUserId = buyer.Id,
+                BidderId = userId,
                 Amount = amount
             };
 
@@ -68,15 +61,22 @@ namespace Marketplace.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AcceptBid(int id)
         {
             var bid = await _db.Bids
                 .Include(b => b.Book)
-                .Include(b => b.Bidder).ThenInclude(b => b!.Contact)
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             if (bid == null) return NotFound();
+
+            // Ensure only the seller or admin can accept bids
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (bid.Book!.SellerId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
 
             // Mark bid as accepted
             bid.IsAccepted = true;
@@ -85,7 +85,7 @@ namespace Marketplace.Controllers
             var purchaseRequest = new PurchaseRequest
             {
                 BookId = bid.BookId,
-                BuyerId = bid.BidderUserId,
+                BuyerId = bid.BidderId,
                 OfferPrice = bid.Amount,
                 Status = PurchaseRequestStatus.New
             };

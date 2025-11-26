@@ -26,5 +26,12 @@ namespace Marketplace.Models
         Good = 3,
         Acceptable = 4
     }
+
+    public enum UserRole
+    {
+        Admin = 0,
+        Buyer = 1,
+        Seller = 2
+    }
 }
 

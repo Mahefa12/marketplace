@@ -7,9 +7,8 @@ namespace Marketplace.Models
     {
         public int Id { get; set; }
         [Required]
-        public int SellerId { get; set; }
-        public Seller? Seller { get; set; }
-        [Range(1,5)]
+        public string SellerId { get; set; } = string.Empty;
+        [Range(1, 5)]
         public int Stars { get; set; }
         [StringLength(2000)]
         public string? Comment { get; set; }

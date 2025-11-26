@@ -1,26 +1,32 @@
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Identity;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddAuthentication("AdminAuth").AddCookie("AdminAuth", options =>
-{
-    options.LoginPath = "/Admin/Login";
-    options.AccessDeniedPath = "/Admin/Login";
-});
 
 builder.Services.AddDbContext<Marketplace.Data.MarketplaceDbContext>(options =>
 {
     var conn = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=marketplace.db";
     options.UseSqlite(conn);
 });
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<Marketplace.Data.MarketplaceDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+});
 builder.Services.AddMemoryCache();
-builder.Services.AddScoped<Marketplace.Services.IBookService, Marketplace.Services.BookService>();
-builder.Services.AddScoped<Marketplace.Services.IPurchaseService, Marketplace.Services.PurchaseService>();
+
+
 builder.Services.AddScoped<Marketplace.Services.INotificationService, Marketplace.Services.NotificationService>();
 
 var app = builder.Build();
@@ -50,8 +56,10 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<Marketplace.Data.MarketplaceDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     db.Database.Migrate();
-    Marketplace.Data.DbSeeder.SeedAsync(db).GetAwaiter().GetResult();
+    Marketplace.Data.DbSeeder.SeedAsync(db, userManager, roleManager).GetAwaiter().GetResult();
 }
 
 app.Run();

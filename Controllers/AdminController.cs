@@ -1,20 +1,17 @@
-using System.Security.Claims;
+using System.Linq;
 using System.Threading.Tasks;
 using Marketplace.Data;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Marketplace.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly MarketplaceDbContext _db;
         private readonly Services.INotificationService _notifications;
-        private const string DemoUser = "admin";
-        private const string DemoPass = "admin123";
 
         public AdminController(MarketplaceDbContext db, Services.INotificationService notifications)
         {
@@ -22,58 +19,21 @@ namespace Marketplace.Controllers
             _notifications = notifications;
         }
 
-        [HttpGet]
-        public IActionResult Login()
-        {
-            ViewData["DemoUser"] = DemoUser;
-            ViewData["DemoPass"] = DemoPass;
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string username, string password)
-        {
-            if (username == DemoUser && password == DemoPass)
-            {
-                var claims = new[]
-                {
-                    new Claim(ClaimTypes.Name, DemoUser),
-                    new Claim(ClaimTypes.Role, "Admin"),
-                };
-                var identity = new ClaimsIdentity(claims, "AdminAuth");
-                var principal = new ClaimsPrincipal(identity);
-                await HttpContext.SignInAsync("AdminAuth", principal, new AuthenticationProperties
-                {
-                    IsPersistent = true
-                });
-                return RedirectToAction(nameof(Dashboard));
-            }
-
-            ModelState.AddModelError(string.Empty, "Invalid credentials");
-            ViewData["DemoUser"] = DemoUser;
-            ViewData["DemoPass"] = DemoPass;
-            return View();
-        }
-
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
         public async Task<IActionResult> Dashboard()
         {
-            var requests = await _db.PurchaseRequests.Include(r => r.Book).ThenInclude(b => b.Seller).ThenInclude(s => s.Contact)
-                .Include(r => r.Buyer).ThenInclude(b => b.Contact)
+            var requests = await _db.PurchaseRequests
+                .Include(r => r.Book)
                 .OrderByDescending(r => r.CreatedAt).ToListAsync();
 
             // Add pending books for approval
             var pendingBooks = await _db.Books
-                .Include(b => b.Seller).ThenInclude(s => s!.Contact)
                 .Where(b => b.Status == Models.BookStatus.Pending)
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
             // Add awaiting payment purchases
             var awaitingPayment = await _db.PurchaseRequests
-                .Include(pr => pr.Book).ThenInclude(b => b!.Seller).ThenInclude(s => s!.Contact)
-                .Include(pr => pr.Buyer).ThenInclude(b => b!.Contact)
+                .Include(pr => pr.Book)
                 .Where(pr => pr.Status == Models.PurchaseRequestStatus.AwaitingPayment)
                 .OrderByDescending(pr => pr.CreatedAt)
                 .ToListAsync();
@@ -83,7 +43,6 @@ namespace Marketplace.Controllers
             return View(requests);
         }
 
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRequestStatus(int id, Models.PurchaseRequestStatus status)
@@ -95,7 +54,6 @@ namespace Marketplace.Controllers
             return RedirectToAction(nameof(Dashboard));
         }
 
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveBook(int id)
@@ -108,7 +66,6 @@ namespace Marketplace.Controllers
             return RedirectToAction(nameof(Dashboard));
         }
 
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectBook(int id)
@@ -121,14 +78,12 @@ namespace Marketplace.Controllers
             return RedirectToAction(nameof(Dashboard));
         }
 
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmPayment(int id)
         {
             var purchaseRequest = await _db.PurchaseRequests
-                .Include(pr => pr.Book).ThenInclude(b => b!.Seller).ThenInclude(s => s!.Contact)
-                .Include(pr => pr.Buyer).ThenInclude(b => b!.Contact)
+                .Include(pr => pr.Book)
                 .FirstOrDefaultAsync(pr => pr.Id == id);
 
             if (purchaseRequest == null) return NotFound();
@@ -144,32 +99,25 @@ namespace Marketplace.Controllers
             await _db.SaveChangesAsync();
 
             // Notify Buyer
-            if (purchaseRequest.Buyer != null)
-            {
-                await _notifications.NotifyUserAsync(purchaseRequest.Buyer.Contact.Name,
-                    $"Payment Received! Please collect your book '{purchaseRequest.Book!.Title}' at the Admin Desk. Ref: #BK-{purchaseRequest.BookId}",
-                    purchaseRequest.BookId);
-            }
+            await _notifications.NotifyUserAsync(purchaseRequest.BuyerId,
+                $"Payment Received! Please collect your book '{purchaseRequest.Book!.Title}' at the Admin Desk. Ref: #BK-{purchaseRequest.BookId}",
+                purchaseRequest.BookId);
 
             // Notify Seller
-            if (purchaseRequest.Book!.Seller != null)
-            {
-                await _notifications.NotifyUserAsync(purchaseRequest.Book.Seller.Contact.Name,
-                    $"Item #BK-{purchaseRequest.BookId} ({purchaseRequest.Book.Title}) Sold! Please drop it off at the Admin Desk.",
-                    purchaseRequest.BookId);
-            }
+            await _notifications.NotifyUserAsync(purchaseRequest.Book.SellerId,
+                $"Item #BK-{purchaseRequest.BookId} ({purchaseRequest.Book.Title}) Sold! Please drop it off at the Admin Desk.",
+                purchaseRequest.BookId);
 
             TempData["Success"] = $"Payment confirmed for Purchase Request #{id}! Notifications sent.";
             return RedirectToAction(nameof(Dashboard));
         }
 
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelReservation(int id)
         {
             var purchaseRequest = await _db.PurchaseRequests
-                .Include(pr => pr.Book).ThenInclude(b => b!.Seller).ThenInclude(s => s!.Contact)
+                .Include(pr => pr.Book)
                 .FirstOrDefaultAsync(pr => pr.Id == id);
 
             if (purchaseRequest == null) return NotFound();
@@ -178,12 +126,9 @@ namespace Marketplace.Controllers
             purchaseRequest.Book!.Status = Models.BookStatus.Active;
 
             // Notify Seller
-            if (purchaseRequest.Book.Seller != null)
-            {
-                await _notifications.NotifyUserAsync(purchaseRequest.Book.Seller.Contact.Name,
-                    $"Reservation for #BK-{purchaseRequest.BookId} ({purchaseRequest.Book.Title}) was cancelled. It is back on the market.",
-                    purchaseRequest.BookId);
-            }
+            await _notifications.NotifyUserAsync(purchaseRequest.Book.SellerId,
+                $"Reservation for #BK-{purchaseRequest.BookId} ({purchaseRequest.Book.Title}) was cancelled. It is back on the market.",
+                purchaseRequest.BookId);
 
             // Remove purchase request
             _db.PurchaseRequests.Remove(purchaseRequest);
@@ -191,13 +136,6 @@ namespace Marketplace.Controllers
 
             TempData["Success"] = $"Reservation cancelled for Book #{purchaseRequest.BookId}. It is now Active again.";
             return RedirectToAction(nameof(Dashboard));
-        }
-
-        [Authorize(AuthenticationSchemes = "AdminAuth")]
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync("AdminAuth");
-            return RedirectToAction(nameof(Login));
         }
     }
 }

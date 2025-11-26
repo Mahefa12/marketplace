@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="auth-card">
+            <h2 class="auth-heading">Login</h2>
+
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger">@ViewBag.Error</div>
+            }
+
+            <form method="post" asp-action="Login">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <input type="text" name="username" class="auth-input" placeholder="Username" required />
+                </div>
+
+                <div class="mb-3">
+                    <input type="password" name="password" class="auth-input" placeholder="Password" required />
+                </div>
+
+                <button type="submit" class="auth-button">Login</button>
+            </form>
+
+            <div class="auth-link">
+                Don't have an account? <a asp-action="Register">Register</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm mt-4 mt-md-0">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">🧪 Demo Credentials</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">Use these accounts to test different roles:</p>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold text-danger">Admin</h6>
+                    <code class="d-block bg-light p-2 rounded">User: admin<br>Pass: Password123!</code>
+                </div>
+
+                <div class="mb-3">
+                    <h6 class="fw-bold text-primary">Seller</h6>
+                    <code class="d-block bg-light p-2 rounded">User: seller<br>Pass: Password123!</code>
+                </div>
+
+                <div class="mb-0">
+                    <h6 class="fw-bold text-success">Buyer</h6>
+                    <code class="d-block bg-light p-2 rounded">User: buyer<br>Pass: Password123!</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

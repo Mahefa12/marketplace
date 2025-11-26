@@ -13,10 +13,7 @@ namespace Marketplace.Models
         public Book? Book { get; set; }
 
         [Required]
-        public int BidderUserId { get; set; }
-
-        // Using Buyer entity as the bidder
-        public Buyer? Bidder { get; set; }
+        public string BidderId { get; set; } = string.Empty;
 
         [Required]
         [Range(1, 1000000)]

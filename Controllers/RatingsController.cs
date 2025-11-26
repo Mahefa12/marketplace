@@ -1,15 +1,20 @@
 using System.Threading.Tasks;
-using Marketplace.Services;
+using Marketplace.Data;
+using Marketplace.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Marketplace.Controllers
 {
+    [Authorize]
     public class RatingsController : Controller
     {
-        private readonly IPurchaseService _purchaseService;
-        public RatingsController(IPurchaseService purchaseService)
+        private readonly MarketplaceDbContext _db;
+
+        public RatingsController(MarketplaceDbContext db)
         {
-            _purchaseService = purchaseService;
+            _db = db;
         }
 
         [HttpGet]
@@ -25,7 +30,20 @@ namespace Marketplace.Controllers
         {
             try
             {
-                await _purchaseService.CreateSellerRatingAsync(purchaseRequestId, stars, comment);
+                var pr = await _db.PurchaseRequests.Include(x => x.Book).FirstOrDefaultAsync(x => x.Id == purchaseRequestId);
+                if (pr == null || pr.Book == null) throw new System.InvalidOperationException("Invalid purchase request");
+                if (pr.Status != PurchaseRequestStatus.Completed) throw new System.InvalidOperationException("Request not completed");
+
+                var rating = new SellerRating
+                {
+                    SellerId = pr.Book.SellerId,
+                    Stars = stars,
+                    Comment = comment,
+                    PurchaseRequestId = pr.Id
+                };
+                _db.SellerRatings.Add(rating);
+                await _db.SaveChangesAsync();
+
                 TempData["Success"] = "Thank you for your rating.";
                 return RedirectToAction("Dashboard", "Admin");
             }
@@ -38,4 +56,3 @@ namespace Marketplace.Controllers
         }
     }
 }
-

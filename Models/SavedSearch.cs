@@ -7,8 +7,7 @@ namespace Marketplace.Models
     {
         public int Id { get; set; }
         [Required]
-        public int BuyerId { get; set; }
-        public Buyer? Buyer { get; set; }
+        public string BuyerId { get; set; } = string.Empty;
         [StringLength(200)]
         public string? Query { get; set; }
         [StringLength(100)]

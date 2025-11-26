@@ -44,8 +44,7 @@ namespace Marketplace.ViewModels
         [StringLength(2000)]
         public string? Description { get; set; }
 
-        [Required]
-        public ContactInfo SellerContact { get; set; } = new ContactInfo();
+
 
         public List<string> ImageUrls { get; set; } = new List<string>();
 

@@ -1,8 +1,11 @@
 @model Book
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Book Details";
     var highestBid = Model.Bids.Any() ? Model.Bids.Max(b => b.Amount) : Model.Price;
     var bidCount = Model.Bids.Count();
+    var seller = ViewData["Seller"] as IdentityUser;
 }
 
 <div class="row">
@@ -25,11 +28,11 @@
                 }
 
                 <h1 class="h4">@Model.Title</h1>
-                <p class="text-muted">by @Model.Author @(!string.IsNullOrWhiteSpace(Model.Version) ? $"-         {Model.Version}" : "")</p>
+                <p class="text-muted">by @Model.Author @(!string.IsNullOrWhiteSpace(Model.Version) ? $"-                 {Model.Version}" : "")</p>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <p><strong>Starting Price:</strong> @($"R{Model.Price:F2}").ToString("F2")</p>
+                        <p><strong>Starting Price:</strong> R@(Model.Price.ToString("F2"))</p>
                         <p><strong>Condition:</strong> <span class="badge bg-info">@Model.Condition</span></p>
                         <p><strong>Category:</strong> @Model.Category</p>
                         <p><strong>Location:</strong> @Model.Location</p>
@@ -62,19 +65,18 @@
                     }
                 </div>
 
-                @if (Model.Seller != null)
+                @if (seller != null)
                 {
                     <hr />
                     <h6>Seller Information</h6>
-                    @if (User.Identity?.IsAuthenticated == true && User.Identity.Name == "admin")
+                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                     {
-                        <p><strong>Name:</strong> @Model.Seller.Contact.Name</p>
+                        <p><strong>Username:</strong> @seller.UserName</p>
+                        <p><strong>Email:</strong> @seller.Email</p>
                         <p>
                             <a class="btn btn-sm btn-outline-primary" asp-controller="Sellers" asp-action="Profile"
                                 asp-route-id="@Model.SellerId">View Seller Profile</a>
                         </p>
-                        <p class="small text-muted"><strong>Contact:</strong> @Model.Seller.Contact.Email,
-                            @Model.Seller.Contact.Phone</p>
                     }
                     else
                     {
@@ -104,9 +106,9 @@
                                 {
                                     <tr class="@(bid.Amount == highestBid ? "table-success" : "")">
                                         <td>
-                                            @if (User.Identity?.IsAuthenticated == true && User.Identity.Name == "admin")
+                                            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                                             {
-                                                @bid.Bidder?.Contact.Name
+                                                <span class="text-muted">Bidder ID: @bid.BidderId.Substring(0, 8)...</span>
                                             }
                                             else
                                             {
@@ -153,28 +155,15 @@
                             <h6>🛒 Buy Now</h6>
                             <button type="button" class="btn btn-primary w-100" data-bs-toggle="collapse"
                                 data-bs-target="#buyNowForm">
-                                Buy at R@Model.Price.ToString("F2")
+                                Buy at R@(Model.Price.ToString("F2"))
                             </button>
 
                             <div class="collapse mt-3" id="buyNowForm">
                                 <div class="card card-body">
                                     <form asp-controller="Purchase" asp-action="BuyNow" method="post">
                                         <input type="hidden" name="bookId" value="@Model.Id" />
-                                        <div class="mb-2">
-                                            <label class="form-label small">Your Name</label>
-                                            <input type="text" name="buyerName" class="form-control form-control-sm"
-                                                required />
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small">Your Email</label>
-                                            <input type="email" name="buyerEmail" class="form-control form-control-sm"
-                                                required />
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small">Your Phone</label>
-                                            <input type="tel" name="buyerPhone" class="form-control form-control-sm"
-                                                required />
-                                        </div>
+                                        <p class="small text-muted mb-2">Clicking proceed will send a purchase request to
+                                            the admin.</p>
                                         <button type="submit" class="btn btn-sm btn-primary w-100">Proceed to
                                             Payment</button>
                                     </form>
@@ -192,21 +181,6 @@
                                 <div class="card card-body">
                                     <form asp-controller="Bids" asp-action="PlaceBid" method="post">
                                         <input type="hidden" name="bookId" value="@Model.Id" />
-                                        <div class="mb-2">
-                                            <label class="form-label small">Your Name</label>
-                                            <input type="text" name="buyerName" class="form-control form-control-sm"
-                                                required />
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small">Your Email</label>
-                                            <input type="email" name="buyerEmail" class="form-control form-control-sm"
-                                                required />
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small">Your Phone</label>
-                                            <input type="tel" name="buyerPhone" class="form-control form-control-sm"
-                                                required />
-                                        </div>
                                         <div class="mb-2">
                                             <label class="form-label small">Bid Amount (Min: R@(highestBid + 10))</label>
                                             <input type="number" step="0.01" name="amount"
@@ -239,11 +213,15 @@
                 }
 
                 <div class="mt-3 d-flex gap-2">
-                    <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-                    <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
-                        <input type="hidden" name="status" value="@Marketplace.Models.BookStatus.Sold" />
-                        <button class="btn btn-outline-danger btn-sm" type="submit">Mark Sold</button>
-                    </form>
+                    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || Model.SellerId ==
+                                        UserManager.GetUserId(User)))
+                    {
+                        <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+                        <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            <input type="hidden" name="status" value="@Marketplace.Models.BookStatus.Sold" />
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Mark Sold</button>
+                        </form>
+                    }
                     <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Back to Listings</a>
                 </div>
             </div>

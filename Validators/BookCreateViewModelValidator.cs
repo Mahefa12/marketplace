@@ -10,9 +10,7 @@ namespace Marketplace.Validators
             RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
             RuleFor(x => x.Author).NotEmpty().MaximumLength(150);
             RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
-            RuleFor(x => x.SellerContact.Name).NotEmpty();
-            RuleFor(x => x.SellerContact.Email).EmailAddress().NotEmpty();
-            RuleFor(x => x.SellerContact.Phone).NotEmpty();
+
         }
     }
 }

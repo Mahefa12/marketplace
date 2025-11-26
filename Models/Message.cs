@@ -16,10 +16,8 @@ namespace Marketplace.Models
         [Required]
         public int BookId { get; set; }
         public Book? Book { get; set; }
-        public int? BuyerId { get; set; }
-        public Buyer? Buyer { get; set; }
-        public int? SellerId { get; set; }
-        public Seller? Seller { get; set; }
+        public string? BuyerId { get; set; }
+        public string? SellerId { get; set; }
         [Required]
         public MessageRole FromRole { get; set; }
         [Required]

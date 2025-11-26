@@ -1,0 +1,46 @@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="auth-card">
+    <h2 class="auth-heading">Register</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form method="post" asp-action="Register">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <input type="text" name="username" class="auth-input" placeholder="Username" required />
+        </div>
+
+        <div class="mb-3">
+            <input type="email" name="email" class="auth-input" placeholder="Email" required />
+        </div>
+
+        <div class="mb-3">
+            <input type="password" name="password" class="auth-input" placeholder="Password" required />
+        </div>
+
+        <div class="mb-3">
+            <input type="password" name="confirmPassword" class="auth-input" placeholder="Confirm Password" required />
+        </div>
+
+        <div class="mb-3">
+            <select name="role" class="auth-input" required>
+                <option value="">Select Role</option>
+                <option value="buyer">Buyer</option>
+                <option value="seller">Seller</option>
+            </select>
+        </div>
+
+        <button type="submit" class="auth-button">Register</button>
+    </form>
+
+    <div class="auth-link">
+        Already have an account? <a asp-action="Login">Login</a>
+    </div>
+</div>

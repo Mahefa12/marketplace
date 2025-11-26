@@ -1,4 +1,6 @@
 @model IEnumerable<PurchaseRequest>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Admin Dashboard";
     var pendingBooks = ViewData["PendingBooks"] as IEnumerable<Marketplace.Models.Book> ??
@@ -6,7 +8,9 @@
 }
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3">Admin Dashboard</h1>
-    <a class="btn btn-outline-danger" asp-action="Logout">Logout</a>
+    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+        <button type="submit" class="btn btn-outline-danger">Logout</button>
+    </form>
 </div>
 
 @if (TempData["Success"] != null)
@@ -45,15 +49,16 @@
                     <tbody>
                         @foreach (var book in pendingBooks)
                         {
+                            var seller = await UserManager.FindByIdAsync(book.SellerId);
                             <tr>
                                 <td><span class="badge bg-secondary">#BK-@book.Id</span></td>
                                 <td>
                                     <div class="fw-semibold">@book.Title</div>
-                                    <div class="text-muted small">@book.Author @(!string.IsNullOrWhiteSpace(book.Version) ? $"-                              {book.Version}" : "")</div>
+                                    <div class="text-muted small">@book.Author @(!string.IsNullOrWhiteSpace(book.Version) ? $"-                               {book.Version}" : "")</div>
                                 </td>
                                 <td>
-                                    <div>@book.Seller?.Contact.Name</div>
-                                    <div class="text-muted small">@book.Seller?.Contact.Phone</div>
+                                    <div>@(seller?.UserName ?? "Unknown")</div>
+                                    <div class="text-muted small">@(seller?.Email ?? "No Email")</div>
                                 </td>
                                 <td class="fw-bold">R@book.Price.ToString("F2")</td>
                                 <td><span class="badge bg-info">@book.Condition</span></td>
@@ -113,20 +118,21 @@
                     <tbody>
                         @foreach (var pr in awaitingPayment)
                         {
+                            var seller = await UserManager.FindByIdAsync(pr.Book?.SellerId ?? "");
+                            var buyer = await UserManager.FindByIdAsync(pr.BuyerId);
                             <tr>
                                 <td><span class="badge bg-secondary">#PR-@pr.Id</span></td>
                                 <td>
                                     <div class="fw-semibold">@pr.Book?.Title</div>
                                     <div class="text-muted small">by @pr.Book?.Author</div>
                                     <div class="mt-1 small">
-                                        <strong>Seller:</strong> @pr.Book?.Seller?.Contact.Name<br />
-                                        <span class="text-muted">@pr.Book?.Seller?.Contact.Phone |
-                                            @pr.Book?.Seller?.Contact.Email</span>
+                                        <strong>Seller:</strong> @(seller?.UserName ?? "Unknown")<br />
+                                        <span class="text-muted">@(seller?.Email ?? "No Email")</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <strong>Buyer:</strong> @pr.Buyer?.Contact.Name<br />
-                                    <span class="text-muted small">@pr.Buyer?.Contact.Phone | @pr.Buyer?.Contact.Email</span>
+                                    <strong>Buyer:</strong> @(buyer?.UserName ?? "Unknown")<br />
+                                    <span class="text-muted small">@(buyer?.Email ?? "No Email")</span>
                                 </td>
                                 <td class="fw-bold">R@pr.OfferPrice</td>
                                 <td>
@@ -181,7 +187,6 @@
                             <th>Book</th>
                             <th>Seller</th>
                             <th>Buyer</th>
-                            <th>Contact</th>
                             <th>Status</th>
                             <th>Requested</th>
                         </tr>
@@ -189,18 +194,21 @@
                     <tbody>
                         @foreach (var r in Model)
                         {
+                            var seller = await UserManager.FindByIdAsync(r.Book?.SellerId ?? "");
+                            var buyer = await UserManager.FindByIdAsync(r.BuyerId);
                             <tr>
                                 <td>
                                     <div class="fw-semibold">@r.Book?.Title</div>
-                                    <div class="text-muted">@r.Book?.Author @(!string.IsNullOrWhiteSpace(r.Book?.Version) ? $"-                           {r.Book?.Version}" : "")</div>
+                                    <div class="text-muted">@r.Book?.Author @(!string.IsNullOrWhiteSpace(r.Book?.Version) ? $"- {r.Book?.Version}" : "")</div>
                                 </td>
                                 <td>
-                                    <div>@r.Book?.Seller?.Contact.Name</div>
-                                    <div class="text-muted small">@r.Book?.Seller?.Contact.Email |
-                                        @r.Book?.Seller?.Contact.Phone</div>
+                                    <div>@(seller?.UserName ?? "Unknown")</div>
+                                    <div class="text-muted small">@(seller?.Email ?? "No Email")</div>
                                 </td>
-                                <td>@r.Buyer?.Contact.Name</td>
-                                <td>@r.Buyer?.Contact.Email | @r.Buyer?.Contact.Phone</td>
+                                <td>
+                                    <div>@(buyer?.UserName ?? "Unknown")</div>
+                                    <div class="text-muted small">@(buyer?.Email ?? "No Email")</div>
+                                </td>
                                 <td>
                                     <form asp-action="UpdateRequestStatus" method="post"
                                         class="d-flex align-items-center gap-2">

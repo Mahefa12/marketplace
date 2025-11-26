@@ -2,31 +2,34 @@ using System.Linq;
 using System.Threading.Tasks;
 using Marketplace.Data;
 using Marketplace.Models;
-using Marketplace.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Marketplace.Controllers
 {
+    [Authorize]
     public class WishlistController : Controller
     {
         private readonly MarketplaceDbContext _db;
-        private readonly IPurchaseService _purchase;
-        public WishlistController(MarketplaceDbContext db, IPurchaseService purchase)
+
+        public WishlistController(MarketplaceDbContext db)
         {
             _db = db;
-            _purchase = purchase;
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(int bookId, ContactInfo contact)
+        public async Task<IActionResult> Add(int bookId)
         {
-            var buyer = await _purchase.EnsureBuyerAsync(contact);
-            var exists = await _db.WishlistItems.AnyAsync(w => w.BuyerId == buyer.Id && w.BookId == bookId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var exists = await _db.WishlistItems.AnyAsync(w => w.BuyerId == userId && w.BookId == bookId);
             if (!exists)
             {
-                _db.WishlistItems.Add(new WishlistItem { BuyerId = buyer.Id, BookId = bookId });
+                _db.WishlistItems.Add(new WishlistItem { BuyerId = userId, BookId = bookId });
                 await _db.SaveChangesAsync();
             }
             TempData["Success"] = "Added to wishlist";
@@ -35,10 +38,12 @@ namespace Marketplace.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Remove(int bookId, ContactInfo contact)
+        public async Task<IActionResult> Remove(int bookId)
         {
-            var buyer = await _purchase.EnsureBuyerAsync(contact);
-            var item = await _db.WishlistItems.FirstOrDefaultAsync(w => w.BuyerId == buyer.Id && w.BookId == bookId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var item = await _db.WishlistItems.FirstOrDefaultAsync(w => w.BuyerId == userId && w.BookId == bookId);
             if (item != null)
             {
                 _db.WishlistItems.Remove(item);
@@ -49,4 +54,3 @@ namespace Marketplace.Controllers
         }
     }
 }
-

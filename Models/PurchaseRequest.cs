@@ -13,9 +13,7 @@ namespace Marketplace.Models
         public Book? Book { get; set; }
 
         [Required]
-        public int BuyerId { get; set; }
-
-        public Buyer? Buyer { get; set; }
+        public string BuyerId { get; set; } = string.Empty;
 
         public decimal? OfferPrice { get; set; }
 

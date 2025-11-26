@@ -8,8 +8,7 @@ namespace Marketplace.ViewModels
         [Required]
         public int BookId { get; set; }
 
-        [Required]
-        public ContactInfo BuyerContact { get; set; } = new ContactInfo();
+
 
         public decimal? OfferPrice { get; set; }
     }

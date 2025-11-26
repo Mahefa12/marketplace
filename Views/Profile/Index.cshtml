@@ -1,0 +1,176 @@
+@using Marketplace.Models
+@{
+    ViewData["Title"] = "My Dashboard";
+    var myListings = ViewData["MyListings"] as IEnumerable<Book> ?? Enumerable.Empty<Book>();
+    var myBids = ViewData["MyBids"] as IEnumerable<Bid> ?? Enumerable.Empty<Bid>();
+    var myPurchases = ViewData["MyPurchases"] as IEnumerable<PurchaseRequest> ?? Enumerable.Empty<PurchaseRequest>();
+}
+
+<div class="container">
+    <h1 class="h3 mb-4">📊 My Dashboard</h1>
+    <p class="text-muted">Welcome back, @User.Identity?.Name!</p>
+
+    <!-- My Active Listings -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">📚 My Active Listings (@myListings.Count())</h5>
+        </div>
+        <div class="card-body">
+            @if (!myListings.Any())
+            {
+                <p class="text-muted mb-0">You haven't listed any books yet. <a asp-controller="Books"
+                        asp-action="Create">Create a listing</a></p>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var book in myListings)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100">
+                                @if (book.Images.Any())
+                                {
+                                    <img src="@book.Images.First().Url" class="card-img-top"
+                                        style="height: 200px; object-fit: cover;" alt="@book.Title">
+                                }
+                                <div class="card-body">
+                                    <h6 class="card-title">@book.Title</h6>
+                                    <p class="card-text small text-muted">@book.Author</p>
+                                    <p class="mb-1"><strong>Price:</strong> R@(book.Price.ToString("F2"))</p>
+                                    <p class="mb-1"><strong>Status:</strong> <span
+                                            class="badge bg-@(book.Status == BookStatus.Active ? "success" : book.Status == BookStatus.Pending ? "warning" : "secondary")">@book.Status</span>
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-white border-0">
+                                    <a href="@Url.Action("Details", "Books", new { id = book.Id })"
+                                        class="btn btn-sm btn-outline-primary w-100">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- My Bids -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">💰 My Bids (@myBids.Count())</h5>
+        </div>
+        <div class="card-body">
+            @if (!myBids.Any())
+            {
+                <p class="text-muted mb-0">You haven't placed any bids yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>My Bid</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var bid in myBids)
+                            {
+                                <tr class="@(bid.IsAccepted ? "table-success" : "")">
+                                    <td>
+                                        <div class="fw-semibold">@bid.Book?.Title</div>
+                                        <small class="text-muted">@bid.Book?.Author</small>
+                                    </td>
+                                    <td class="fw-bold">R@bid.Amount</td>
+                                    <td class="small">@bid.CreatedAt.ToLocalTime().ToString("g")</td>
+                                    <td>
+                                        @if (bid.IsAccepted)
+                                        {
+                                            <span class="badge bg-success">Accepted</span>
+                                        }
+                                        else if (bid.Book?.Status == BookStatus.Sold)
+                                        {
+                                            <span class="badge bg-secondary">Not Won</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">Pending</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (bid.Book != null)
+                                        {
+                                            <a href="@Url.Action("Details", "Books", new { id = bid.BookId })"
+                                                class="btn btn-sm btn-outline-primary">View Book</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- My Purchases -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">🛒 My Purchases (@myPurchases.Count())</h5>
+        </div>
+        <div class="card-body">
+            @if (!myPurchases.Any())
+            {
+                <p class="text-muted mb-0">You haven't made any purchases yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var pr in myPurchases)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">@pr.Book?.Title</div>
+                                        <small class="text-muted">@pr.Book?.Author</small>
+                                    </td>
+                                    <td class="fw-bold">R@pr.OfferPrice</td>
+                                    <td>
+                                        <span
+                                            class="badge bg-@(pr.Status == PurchaseRequestStatus.Completed ? "success" : pr.Status == PurchaseRequestStatus.Paid ? "info" : pr.Status == PurchaseRequestStatus.AwaitingPayment ? "warning" : "secondary")">@pr.Status</span>
+                                    </td>
+                                    <td class="small">@pr.CreatedAt.ToLocalTime().ToString("g")</td>
+                                    <td>
+                                        @if (pr.Book != null && pr.Status == PurchaseRequestStatus.AwaitingPayment)
+                                        {
+                                            <a href="@Url.Action("PaymentInstructions", "Purchase", new { id = pr.Id })"
+                                                class="btn btn-sm btn-warning">Pay Now</a>
+                                        }
+                                        else if (pr.Book != null)
+                                        {
+                                            <a href="@Url.Action("Details", "Books", new { id = pr.BookId })"
+                                                class="btn btn-sm btn-outline-primary">View Book</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

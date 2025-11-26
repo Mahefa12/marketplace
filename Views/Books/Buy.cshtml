@@ -15,21 +15,7 @@
                 <form asp-action="Buy" method="post">
                     <input type="hidden" asp-for="BookId" />
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input asp-for="BuyerContact.Name" class="form-control" />
-                        <span asp-validation-for="BuyerContact.Name" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input asp-for="BuyerContact.Email" class="form-control" />
-                        <span asp-validation-for="BuyerContact.Email" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Phone</label>
-                        <input asp-for="BuyerContact.Phone" class="form-control" />
-                        <span asp-validation-for="BuyerContact.Phone" class="text-danger"></span>
-                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Offer Price (optional)</label>
                         <input asp-for="OfferPrice" class="form-control" />
@@ -42,7 +28,8 @@
             </div>
         </div>
     </div>
-}</div>
+    }
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -3,18 +3,23 @@ using System.Threading.Tasks;
 using Marketplace.Data;
 using Marketplace.Models;
 using Marketplace.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Marketplace.Controllers
 {
     public class BooksController : Controller
     {
         private readonly MarketplaceDbContext _db;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public BooksController(MarketplaceDbContext db)
+        public BooksController(MarketplaceDbContext db, UserManager<IdentityUser> userManager)
         {
             _db = db;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index(string? q, string? sort, string? category, int page = 1, int pageSize = 12)
@@ -50,12 +55,14 @@ namespace Marketplace.Controllers
             return View(vm);
         }
 
+        [Authorize]
         public IActionResult Create()
         {
             return View(new BookCreateViewModel());
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookCreateViewModel model)
         {
@@ -64,9 +71,8 @@ namespace Marketplace.Controllers
                 return View(model);
             }
 
-            var seller = new Seller { Contact = model.SellerContact };
-            _db.Sellers.Add(seller);
-            await _db.SaveChangesAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
 
             // Calculate condition rating from yes/no questions
             var conditionRating = CalculateConditionRating(model);
@@ -81,7 +87,7 @@ namespace Marketplace.Controllers
                 Category = model.Category,
                 Location = model.Location,
                 Description = model.Description,
-                SellerId = seller.Id,
+                SellerId = userId,
                 Status = BookStatus.Pending  // Force pending status for WhatsApp verification
             };
             _db.Books.Add(book);
@@ -139,14 +145,18 @@ namespace Marketplace.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var book = await _db.Books
-                .Include(b => b.Seller).ThenInclude(s => s.Contact)
                 .Include(b => b.Images)
-                .Include(b => b.Bids).ThenInclude(bid => bid.Bidder).ThenInclude(b => b!.Contact)
+                .Include(b => b.Bids)
                 .FirstOrDefaultAsync(b => b.Id == id);
             if (book == null) return NotFound();
+
+            var seller = await _userManager.FindByIdAsync(book.SellerId);
+            ViewData["Seller"] = seller;
+
             return View(book);
         }
 
+        [Authorize]
         public async Task<IActionResult> Buy(int id)
         {
             var book = await _db.Books.FindAsync(id);
@@ -156,6 +166,7 @@ namespace Marketplace.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Buy(PurchaseRequestViewModel request)
         {
@@ -168,14 +179,13 @@ namespace Marketplace.Controllers
                 return View(request);
             }
 
-            var buyer = new Buyer { Contact = request.BuyerContact };
-            _db.Buyers.Add(buyer);
-            await _db.SaveChangesAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
 
             var pr = new PurchaseRequest
             {
                 BookId = request.BookId,
-                BuyerId = buyer.Id,
+                BuyerId = userId,
                 OfferPrice = request.OfferPrice,
                 Status = PurchaseRequestStatus.New
             };
@@ -185,10 +195,20 @@ namespace Marketplace.Controllers
             return RedirectToAction(nameof(Details), new { id = request.BookId });
         }
 
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
-            var book = await _db.Books.Include(b => b.Seller).ThenInclude(s => s.Contact).Include(b => b.Images).FirstOrDefaultAsync(b => b.Id == id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var book = await _db.Books.Include(b => b.Images).FirstOrDefaultAsync(b => b.Id == id);
+
             if (book == null) return NotFound();
+
+            // Ensure only the seller or admin can edit
+            if (book.SellerId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             var vm = new BookCreateViewModel
             {
                 Title = book.Title,
@@ -199,7 +219,6 @@ namespace Marketplace.Controllers
                 Category = book.Category,
                 Location = book.Location,
                 Description = book.Description,
-                SellerContact = book.Seller?.Contact ?? new ContactInfo(),
                 ImageUrls = book.Images.Select(i => i.Url).ToList()
             };
             ViewData["BookId"] = book.Id;
@@ -207,11 +226,21 @@ namespace Marketplace.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BookCreateViewModel model)
         {
-            var book = await _db.Books.Include(b => b.Seller).ThenInclude(s => s.Contact).Include(b => b.Images).FirstOrDefaultAsync(b => b.Id == id);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var book = await _db.Books.Include(b => b.Images).FirstOrDefaultAsync(b => b.Id == id);
+
             if (book == null) return NotFound();
+
+            // Ensure only the seller or admin can edit
+            if (book.SellerId != userId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             if (!ModelState.IsValid) { ViewData["BookId"] = id; return View(model); }
 
             book.Title = model.Title;
@@ -222,7 +251,6 @@ namespace Marketplace.Controllers
             book.Category = model.Category;
             book.Location = model.Location;
             book.Description = model.Description;
-            if (book.Seller != null) book.Seller.Contact = model.SellerContact;
 
             _db.BookImages.RemoveRange(book.Images);
             if (model.ImageUrls != null)
@@ -244,6 +272,7 @@ namespace Marketplace.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetStatus(int id, BookStatus status)
         {
