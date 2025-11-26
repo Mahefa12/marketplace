@@ -1,0 +1,31 @@
+@model IEnumerable<Marketplace.Models.Notification>
+
+@if (Model.Any())
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-dark" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            🔔 <span class="badge bg-danger rounded-pill">@Model.Count()</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+            <li><h6 class="dropdown-header">Notifications</h6></li>
+            @foreach (var note in Model)
+            {
+                <li>
+                    <a class="dropdown-item small text-wrap" style="max-width: 300px;" href="#">
+                        @note.Message
+                        <br>
+                        <small class="text-muted">@note.CreatedAt.ToLocalTime().ToString("g")</small>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+            }
+            <li><a class="dropdown-item text-center small text-primary" href="#">Mark all as read</a></li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-muted" href="#">🔔</a>
+    </li>
+}

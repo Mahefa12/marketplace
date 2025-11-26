@@ -1,0 +1,37 @@
+@model Marketplace.Models.Book
+@{
+    ViewData["Title"] = "Listing Submitted";
+}
+
+<div class="row">
+    <div class="col-lg-6 mx-auto text-center">
+        <div class="card shadow-lg mt-5">
+            <div class="card-body p-5">
+                <div class="text-success mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                    </svg>
+                </div>
+                <h2 class="h3 mb-3">Listing Saved!</h2>
+                <div class="alert alert-info">
+                    <p class="mb-2"><strong>Listing ID: #BK-@Model.Id</strong></p>
+                    <p class="mb-0">To activate your listing, please send clear photos of your book to the Admin on WhatsApp.</p>
+                </div>
+                <div class="bg-light p-4 rounded my-4">
+                    <h5 class="mb-3">📱 Send Photos To:</h5>
+                    <p class="h4 text-primary mb-2">Admin WhatsApp</p>
+                    <p class="text-muted">+27 XX XXX XXXX</p>
+                    <p class="text-muted small mt-3"><strong>Important:</strong> Include Listing ID <span class="badge bg-primary">#BK-@Model.Id</span> in your message</p>
+                </div>
+                <div class="alert alert-warning">
+                    <small><strong>📖 Book Details:</strong></small><br />
+                    <small>@Model.Title by @Model.Author</small><br />
+                    <small>Price: R@Model.Price</small>
+                </div>
+                <p class="text-muted mb-4">Your listing will appear on the marketplace once verified by our team (usually within 24 hours).</p>
+                <a href="@Url.Action("Index")" class="btn btn-primary">Browse Marketplace</a>
+            </div>
+        </div>
+    </div>
+</div>

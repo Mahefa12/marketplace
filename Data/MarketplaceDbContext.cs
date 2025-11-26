@@ -18,6 +18,8 @@ namespace Marketplace.Data
         public DbSet<SavedSearch> SavedSearches => Set<SavedSearch>();
         public DbSet<Message> Messages => Set<Message>();
         public DbSet<SellerRating> SellerRatings => Set<SellerRating>();
+        public DbSet<Bid> Bids => Set<Bid>();
+        public DbSet<Notification> Notifications => Set<Notification>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -58,6 +60,21 @@ namespace Marketplace.Data
             modelBuilder.Entity<SavedSearch>().HasIndex(s => s.BuyerId);
             modelBuilder.Entity<Message>().HasIndex(m => m.BookId);
             modelBuilder.Entity<SellerRating>().HasIndex(r => r.SellerId);
+
+            // Bid relationships
+            modelBuilder.Entity<Book>()
+                .HasMany(b => b.Bids)
+                .WithOne(bid => bid.Book!)
+                .HasForeignKey(bid => bid.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Bid>()
+                .HasOne(bid => bid.Bidder)
+                .WithMany()
+                .HasForeignKey(bid => bid.BidderUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Bid>().HasIndex(b => b.BookId);
         }
     }
 }

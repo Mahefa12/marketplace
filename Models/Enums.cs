@@ -2,17 +2,20 @@ namespace Marketplace.Models
 {
     public enum BookStatus
     {
-        Active = 0,
-        Reserved = 1,
-        Sold = 2
+        Pending = 0,
+        Active = 1,
+        Reserved = 2,
+        Sold = 3
     }
 
     public enum PurchaseRequestStatus
     {
         New = 0,
-        Contacted = 1,
-        Completed = 2,
-        Rejected = 3
+        AwaitingPayment = 1,
+        Paid = 2,
+        Contacted = 3,
+        Completed = 4,
+        Rejected = 5
     }
 
     public enum BookCondition

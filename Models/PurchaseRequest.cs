@@ -23,5 +23,9 @@ namespace Marketplace.Models
         public PurchaseRequestStatus Status { get; set; } = PurchaseRequestStatus.New;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public bool IsPaid { get; set; }
+
+        public DateTime? PaymentConfirmedAt { get; set; }
     }
 }

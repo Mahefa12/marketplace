@@ -46,5 +46,6 @@ namespace Marketplace.Models
 
         public ICollection<BookImage> Images { get; set; } = new List<BookImage>();
         public ICollection<PurchaseRequest> PurchaseRequests { get; set; } = new List<PurchaseRequest>();
+        public ICollection<Bid> Bids { get; set; } = new List<Bid>();
     }
 }

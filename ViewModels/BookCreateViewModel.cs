@@ -20,8 +20,20 @@ namespace Marketplace.ViewModels
         [Range(0, 1000000)]
         public decimal Price { get; set; }
 
-        [Required]
-        public BookCondition Condition { get; set; } = BookCondition.Good;
+        [Display(Name = "Is the cover torn or damaged?")]
+        public bool IsCoverTorn { get; set; }
+
+        [Display(Name = "Are any pages missing?")]
+        public bool IsPagesMissing { get; set; }
+
+        [Display(Name = "Is there water damage?")]
+        public bool IsWaterDamaged { get; set; }
+
+        [Display(Name = "Is there highlighting or writing?")]
+        public bool HasHighlighting { get; set; }
+
+        [Display(Name = "Is the binding broken or loose?")]
+        public bool IsBindingBroken { get; set; }
 
         [StringLength(100)]
         public string? Category { get; set; }
@@ -36,6 +48,9 @@ namespace Marketplace.ViewModels
         public ContactInfo SellerContact { get; set; } = new ContactInfo();
 
         public List<string> ImageUrls { get; set; } = new List<string>();
+
+        // For backward compatibility with Edit view
+        public BookCondition Condition { get; set; } = BookCondition.Good;
     }
 }
 

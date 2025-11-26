@@ -1,6 +1,8 @@
 @model Book
 @{
     ViewData["Title"] = "Book Details";
+    var highestBid = Model.Bids.Any() ? Model.Bids.Max(b => b.Amount) : Model.Price;
+    var bidCount = Model.Bids.Count();
 }
 
 <div class="row">
@@ -9,48 +11,242 @@
             <div class="card-body">
                 @if (TempData["Success"] != null)
                 {
-                    <div class="alert alert-success">@TempData["Success"]</div>
+                    <div class="alert alert-success alert-dismissible fade show">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
                 <h1 class="h4">@Model.Title</h1>
-                <p class="text-muted">by @Model.Author @(!string.IsNullOrWhiteSpace(Model.Version) ? $"- {Model.Version}" : "")</p>
-                <p><strong>Price:</strong> @Model.Price</p>
-                <p><strong>Condition:</strong> @Model.Condition</p>
-                <p><strong>Category:</strong> @Model.Category</p>
-                <p><strong>Location:</strong> @Model.Location</p>
+                <p class="text-muted">by @Model.Author @(!string.IsNullOrWhiteSpace(Model.Version) ? $"-         {Model.Version}" : "")</p>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Starting Price:</strong> @($"R{Model.Price:F2}").ToString("F2")</p>
+                        <p><strong>Condition:</strong> <span class="badge bg-info">@Model.Condition</span></p>
+                        <p><strong>Category:</strong> @Model.Category</p>
+                        <p><strong>Location:</strong> @Model.Location</p>
+                        <p><strong>Status:</strong> <span
+                                class="badge bg-@(Model.Status == Marketplace.Models.BookStatus.Active ? "success" : Model.Status == Marketplace.Models.BookStatus.Pending ? "warning" : "secondary")">@Model.Status</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        @if (bidCount > 0)
+                        {
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">💰 Bidding Information</h6>
+                                    <p class="mb-1"><strong>Current Highest Bid:</strong> <span
+                                            class="text-success h5">R@highestBid</span></p>
+                                    <p class="mb-0 small text-muted">@bidCount bid(s) received</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
                 <p>@Model.Description</p>
-                <p><strong>Status:</strong> @Model.Status</p>
+
+                <div class="d-flex gap-2 flex-wrap mt-2">
+                    @foreach (var img in Model.Images)
+                    {
+                        <img src="@img.Url" alt="@Model.Title" class="rounded"
+                            style="width:120px;height:auto;object-fit:cover;" />
+                    }
+                </div>
+
                 @if (Model.Seller != null)
                 {
-                    <p><strong>Seller:</strong> @Model.Seller.Contact.Name</p>
-                    <p><a class="btn btn-sm btn-outline-primary" asp-controller="Sellers" asp-action="Profile" asp-route-id="@Model.SellerId">Seller Profile</a></p>
-                    <p><strong>Contact:</strong> @Model.Seller.Contact.Email, @Model.Seller.Contact.Phone</p>
+                    <hr />
+                    <h6>Seller Information</h6>
+                    @if (User.Identity?.IsAuthenticated == true && User.Identity.Name == "admin")
+                    {
+                        <p><strong>Name:</strong> @Model.Seller.Contact.Name</p>
+                        <p>
+                            <a class="btn btn-sm btn-outline-primary" asp-controller="Sellers" asp-action="Profile"
+                                asp-route-id="@Model.SellerId">View Seller Profile</a>
+                        </p>
+                        <p class="small text-muted"><strong>Contact:</strong> @Model.Seller.Contact.Email,
+                            @Model.Seller.Contact.Phone</p>
+                    }
+                    else
+                    {
+                        <p><strong>Seller:</strong> <span class="text-muted fst-italic">Verified Student Seller</span></p>
+                        <p class="small text-muted">All transactions are managed via the Admin Desk.</p>
+                    }
                 }
-                @if (Model.Images.Any())
+
+                <!-- Bidding Section -->
+                @if (Model.Status == Marketplace.Models.BookStatus.Active && bidCount > 0)
                 {
-                    <div class="d-flex gap-2 flex-wrap mt-2">
-                        @foreach (var img in Model.Images)
-                        {
-                            <img src="@img.Url" alt="@Model.Title" class="rounded" style="width:120px;height:auto;object-fit:cover;" />
-                        }
+                    <hr />
+                    <h6>📋 Bid History</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Bidder</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var bid in Model.Bids.OrderByDescending(b => b.Amount))
+                                {
+                                    <tr class="@(bid.Amount == highestBid ? "table-success" : "")">
+                                        <td>
+                                            @if (User.Identity?.IsAuthenticated == true && User.Identity.Name == "admin")
+                                            {
+                                                @bid.Bidder?.Contact.Name
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">Student Bidder</span>
+                                            }
+                                        </td>
+                                        <td class="fw-bold">R@bid.Amount</td>
+                                        <td class="small">@bid.CreatedAt.ToLocalTime().ToString("g")</td>
+                                        <td>
+                                            @if (bid.IsAccepted)
+                                            {
+                                                <span class="badge bg-success">Accepted</span>
+                                            }
+                                            else if (bid.Amount == highestBid)
+                                            {
+                                                <span class="badge bg-warning text-dark">Highest</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!bid.IsAccepted && bid.Amount == highestBid)
+                                            {
+                                                <form asp-controller="Bids" asp-action="AcceptBid" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@bid.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-success"
+                                                        onclick="return confirm('Accept this bid and reserve the book?')">Accept
+                                                        Bid</button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 }
             </div>
-            <div class="card-footer bg-white border-0 d-flex gap-2">
-                <a class="btn btn-primary" asp-action="Buy" asp-route-id="@Model.Id">Buy</a>
-                <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
-                <form asp-controller="Wishlist" asp-action="Add" method="post" class="d-inline">
-                    <input type="hidden" name="bookId" value="@Model.Id" />
-                    <input class="form-control form-control-sm" name="contact.Name" placeholder="Your name" />
-                    <input class="form-control form-control-sm" name="contact.Email" placeholder="Your email" />
-                    <input class="form-control form-control-sm" name="contact.Phone" placeholder="Your phone" />
-                    <button class="btn btn-sm btn-outline-secondary" type="submit">Add to Wishlist</button>
-                </form>
-                <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
-                    <input type="hidden" name="status" value="@Marketplace.Models.BookStatus.Sold" />
-                    <button class="btn btn-outline-danger" type="submit">Mark Sold</button>
-                </form>
-                <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+
+            <!-- Action Buttons -->
+            <div class="card-footer bg-white border-0">
+                @if (Model.Status == Marketplace.Models.BookStatus.Active)
+                {
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6>🛒 Buy Now</h6>
+                            <button type="button" class="btn btn-primary w-100" data-bs-toggle="collapse"
+                                data-bs-target="#buyNowForm">
+                                Buy at R@Model.Price.ToString("F2")
+                            </button>
+
+                            <div class="collapse mt-3" id="buyNowForm">
+                                <div class="card card-body">
+                                    <form asp-controller="Purchase" asp-action="BuyNow" method="post">
+                                        <input type="hidden" name="bookId" value="@Model.Id" />
+                                        <div class="mb-2">
+                                            <label class="form-label small">Your Name</label>
+                                            <input type="text" name="buyerName" class="form-control form-control-sm"
+                                                required />
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Your Email</label>
+                                            <input type="email" name="buyerEmail" class="form-control form-control-sm"
+                                                required />
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Your Phone</label>
+                                            <input type="tel" name="buyerPhone" class="form-control form-control-sm"
+                                                required />
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary w-100">Proceed to
+                                            Payment</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>💵 Place a Bid</h6>
+                            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="collapse"
+                                data-bs-target="#bidForm">
+                                Place Bid (Min: R@(highestBid + 10))
+                            </button>
+
+                            <div class="collapse mt-3" id="bidForm">
+                                <div class="card card-body">
+                                    <form asp-controller="Bids" asp-action="PlaceBid" method="post">
+                                        <input type="hidden" name="bookId" value="@Model.Id" />
+                                        <div class="mb-2">
+                                            <label class="form-label small">Your Name</label>
+                                            <input type="text" name="buyerName" class="form-control form-control-sm"
+                                                required />
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Your Email</label>
+                                            <input type="email" name="buyerEmail" class="form-control form-control-sm"
+                                                required />
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Your Phone</label>
+                                            <input type="tel" name="buyerPhone" class="form-control form-control-sm"
+                                                required />
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">Bid Amount (Min: R@(highestBid + 10))</label>
+                                            <input type="number" step="0.01" name="amount"
+                                                class="form-control form-control-sm" min="@(highestBid + 10)" required />
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-primary w-100">Submit Bid</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (Model.Status == Marketplace.Models.BookStatus.Reserved)
+                {
+                    <div class="alert alert-warning mb-0">
+                        <strong>⚠️ Reserved:</strong> This book is currently reserved for a buyer.
+                    </div>
+                }
+                else if (Model.Status == Marketplace.Models.BookStatus.Sold)
+                {
+                    <div class="alert alert-secondary mb-0">
+                        <strong>✓ Sold:</strong> This book has been sold.
+                    </div>
+                }
+                else if (Model.Status == Marketplace.Models.BookStatus.Pending)
+                {
+                    <div class="alert alert-info mb-0">
+                        <strong>⏳ Pending Approval:</strong> This listing is awaiting admin verification.
+                    </div>
+                }
+
+                <div class="mt-3 d-flex gap-2">
+                    <a class="btn btn-outline-secondary btn-sm" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+                    <form asp-action="SetStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        <input type="hidden" name="status" value="@Marketplace.Models.BookStatus.Sold" />
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Mark Sold</button>
+                    </form>
+                    <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Back to Listings</a>
+                </div>
             </div>
         </div>
     </div>
-}</div>
+</div>

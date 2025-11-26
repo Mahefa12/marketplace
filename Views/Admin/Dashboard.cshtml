@@ -1,59 +1,226 @@
 @model IEnumerable<PurchaseRequest>
 @{
     ViewData["Title"] = "Admin Dashboard";
+    var pendingBooks = ViewData["PendingBooks"] as IEnumerable<Marketplace.Models.Book> ??
+    Enumerable.Empty<Marketplace.Models.Book>();
 }
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3">Purchase Requests</h1>
+    <h1 class="h3">Admin Dashboard</h1>
     <a class="btn btn-outline-danger" asp-action="Logout">Logout</a>
-}</div>
+</div>
 
-@if (!Model.Any())
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-info">No purchase requests yet.</div>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead>
-                <tr>
-                    <th>Book</th>
-                    <th>Seller</th>
-                    <th>Buyer</th>
-                    <th>Contact</th>
-                    <th>Status</th>
-                    <th>Requested</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var r in Model)
-            {
-                <tr>
-                    <td>
-                        <div class="fw-semibold">@r.Book?.Title</div>
-                        <div class="text-muted">@r.Book?.Author @(!string.IsNullOrWhiteSpace(r.Book?.Version) ? $"- {r.Book?.Version}" : "")</div>
-                    </td>
-                    <td>
-                        <div>@r.Book?.Seller?.Contact.Name</div>
-                        <div class="text-muted small">@r.Book?.Seller?.Contact.Email | @r.Book?.Seller?.Contact.Phone</div>
-                    </td>
-                    <td>@r.Buyer?.Contact.Name</td>
-                    <td>@r.Buyer?.Contact.Email | @r.Buyer?.Contact.Phone</td>
-                    <td>
-                        <form asp-action="UpdateRequestStatus" method="post" class="d-flex align-items-center gap-2">
-                            <input type="hidden" name="id" value="@r.Id" />
-                            <select class="form-select form-select-sm" name="status" asp-items="Html.GetEnumSelectList<Marketplace.Models.PurchaseRequestStatus>()"></select>
-                            <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
-                        </form>
-                        @if (r.Status == Marketplace.Models.PurchaseRequestStatus.Completed)
-                        {
-                            <a class="btn btn-sm btn-success mt-2" asp-controller="Ratings" asp-action="Create" asp-route-purchaseRequestId="@r.Id">Collect Rating</a>
-                        }
-                    </td>
-                    <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
-                </tr>
-            }
-            </tbody>
-        </table>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 }
+
+<!-- Pending Approvals Section -->
+<div class="card mb-4">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">📋 Pending Approvals (@pendingBooks.Count())</h5>
+    </div>
+    <div class="card-body">
+        @if (!pendingBooks.Any())
+        {
+            <p class="text-muted mb-0">No books pending approval.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Book Details</th>
+                            <th>Seller</th>
+                            <th>Price</th>
+                            <th>Condition</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in pendingBooks)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">#BK-@book.Id</span></td>
+                                <td>
+                                    <div class="fw-semibold">@book.Title</div>
+                                    <div class="text-muted small">@book.Author @(!string.IsNullOrWhiteSpace(book.Version) ? $"-                              {book.Version}" : "")</div>
+                                </td>
+                                <td>
+                                    <div>@book.Seller?.Contact.Name</div>
+                                    <div class="text-muted small">@book.Seller?.Contact.Phone</div>
+                                </td>
+                                <td class="fw-bold">R@book.Price.ToString("F2")</td>
+                                <td><span class="badge bg-info">@book.Condition</span></td>
+                                <td class="small">@book.CreatedAt.ToLocalTime().ToString("g")</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <form asp-action="ApproveBook" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@book.Id" />
+                                            <button type="submit" class="btn btn-sm btn-success"
+                                                onclick="return confirm('Approve this book listing?')">✓ Approve</button>
+                                        </form>
+                                        <form asp-action="RejectBook" method="post" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@book.Id" />
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Reject and delete this listing?')">✗ Reject</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Awaiting Payment Section -->
+@{
+    var awaitingPayment = ViewData["AwaitingPayment"] as IEnumerable<Marketplace.Models.PurchaseRequest> ??
+    Enumerable.Empty<Marketplace.Models.PurchaseRequest>();
+}
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">💳 Awaiting Payment Confirmation (@awaitingPayment.Count())</h5>
+    </div>
+    <div class="card-body">
+        @if (!awaitingPayment.Any())
+        {
+            <p class="text-muted mb-0">No purchases awaiting payment confirmation.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Book</th>
+                            <th>Buyer</th>
+                            <th>Amount</th>
+                            <th>Reference</th>
+                            <th>Requested</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pr in awaitingPayment)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">#PR-@pr.Id</span></td>
+                                <td>
+                                    <div class="fw-semibold">@pr.Book?.Title</div>
+                                    <div class="text-muted small">by @pr.Book?.Author</div>
+                                    <div class="mt-1 small">
+                                        <strong>Seller:</strong> @pr.Book?.Seller?.Contact.Name<br />
+                                        <span class="text-muted">@pr.Book?.Seller?.Contact.Phone |
+                                            @pr.Book?.Seller?.Contact.Email</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>Buyer:</strong> @pr.Buyer?.Contact.Name<br />
+                                    <span class="text-muted small">@pr.Buyer?.Contact.Phone | @pr.Buyer?.Contact.Email</span>
+                                </td>
+                                <td class="fw-bold">R@pr.OfferPrice</td>
+                                <td>
+                                    <span class="badge bg-danger">BK-@pr.BookId</span>
+                                    <small class="d-block text-muted">Look for this ref in bank</small>
+                                </td>
+                                <td class="small">@pr.CreatedAt.ToLocalTime().ToString("g")</td>
+                                <td>
+                                    <div class="btn-group-vertical btn-group-sm">
+                                        <form asp-controller="Admin" asp-action="ConfirmPayment" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@pr.Id" />
+                                            <button type="submit" class="btn btn-success mb-1"
+                                                onclick="return confirm('Confirm that payment has been received for BK-@pr.BookId?')">
+                                                ✓ Confirm Payment
+                                            </button>
+                                        </form>
+                                        <form asp-controller="Admin" asp-action="CancelReservation" method="post"
+                                            class="d-inline">
+                                            <input type="hidden" name="id" value="@pr.Id" />
+                                            <button type="submit" class="btn btn-outline-danger"
+                                                onclick="return confirm('Cancel this reservation? The book will become Active again.')">
+                                                ✗ Cancel / Un-reserve
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Purchase Requests Section -->
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">💰 Purchase Requests</h5>
+    </div>
+    <div class="card-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted mb-0">No purchase requests yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Book</th>
+                            <th>Seller</th>
+                            <th>Buyer</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@r.Book?.Title</div>
+                                    <div class="text-muted">@r.Book?.Author @(!string.IsNullOrWhiteSpace(r.Book?.Version) ? $"-                           {r.Book?.Version}" : "")</div>
+                                </td>
+                                <td>
+                                    <div>@r.Book?.Seller?.Contact.Name</div>
+                                    <div class="text-muted small">@r.Book?.Seller?.Contact.Email |
+                                        @r.Book?.Seller?.Contact.Phone</div>
+                                </td>
+                                <td>@r.Buyer?.Contact.Name</td>
+                                <td>@r.Buyer?.Contact.Email | @r.Buyer?.Contact.Phone</td>
+                                <td>
+                                    <form asp-action="UpdateRequestStatus" method="post"
+                                        class="d-flex align-items-center gap-2">
+                                        <input type="hidden" name="id" value="@r.Id" />
+                                        <select class="form-select form-select-sm" name="status"
+                                            asp-items="Html.GetEnumSelectList<Marketplace.Models.PurchaseRequestStatus>()"></select>
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
+                                    </form>
+                                    @if (r.Status == Marketplace.Models.PurchaseRequestStatus.Completed)
+                                    {
+                                        <a class="btn btn-sm btn-success mt-2" asp-controller="Ratings" asp-action="Create"
+                                            asp-route-purchaseRequestId="@r.Id">Collect Rating</a>
+                                    }
+                                </td>
+                                <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

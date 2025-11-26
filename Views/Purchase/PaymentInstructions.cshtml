@@ -1,0 +1,97 @@
+@model Marketplace.Models.PurchaseRequest
+@{
+    ViewData["Title"] = "Payment Instructions";
+}
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card shadow-lg mt-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">💳 Payment Instructions</h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-success">
+                    <strong>✓ Book Reserved!</strong> Complete payment within 48 hours to finalize your purchase.
+                </div>
+
+                <h5 class="mb-3">📖 Book Details</h5>
+                <div class="bg-light p-3 rounded mb-3">
+                    <p class="mb-1"><strong>Title:</strong> @Model.Book?.Title</p>
+                    <p class="mb-1"><strong>Author:</strong> @Model.Book?.Author</p>
+                    <p class="mb-0"><strong>Amount Due:</strong> <span class="h4 text-primary">R@Model.OfferPrice</span></p>
+                </div>
+
+                <hr />
+
+                <h5 class="mb-3">🏦 Bank Transfer Details</h5>
+                <div class="alert alert-info">
+                    <p class="mb-0 small"><strong>⚠️ Important:</strong> Use EFT (Electronic Funds Transfer) to make payment</p>
+                </div>
+                
+                <div class="bg-light p-3 rounded mb-3">
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <small class="text-muted">Bank Name</small>
+                            <p class="mb-0 fw-bold">FNB</p>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <small class="text-muted">Account Type</small>
+                            <p class="mb-0 fw-bold">Business Cheque</p>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <small class="text-muted">Account Name</small>
+                            <p class="mb-0 fw-bold">UniMarketplace</p>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <small class="text-muted">Branch Code</small>
+                            <p class="mb-0 fw-bold">250655</p>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <small class="text-muted">Account Number</small>
+                            <p class="mb-0 fw-bold">1234 5678 9012</p>
+                        </div>
+                        <div class="col-12">
+                            <small class="text-muted">Payment Reference</small>
+                            <p class="mb-0">
+                                <span class="badge bg-danger fs-6">BK-@Model.BookId</span>
+                                <small class="d-block text-muted mt-1">⚠️ This is critical - Admin uses this to identify your payment!</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>📌 Critical:</strong> Please use <span class="badge bg-dark">BK-@Model.BookId</span> as your payment reference. Without this, we cannot match your payment to this book!
+                </div>
+
+                <hr />
+
+                <h6 class="mt-4 mb-3">📋 What Happens Next?</h6>
+                <ol class="small">
+                    <li class="mb-2"><strong>Make the EFT bank transfer</strong> using the details above</li>
+                    <li class="mb-2"><strong>Admin verifies your payment</strong> (usually within 24 hours during business days)</li>
+                    <li class="mb-2"><strong>Once confirmed</strong>, you'll be contacted via email/phone to arrange book collection</li>
+                    <li class="mb-2"><strong>Collect your book</strong> from the seller at the agreed location</li>
+                </ol>
+
+                <div class="alert alert-secondary mt-3">
+                    <small>
+                        <strong>Need Help?</strong> Contact admin if you have any questions about payment.<br />
+                        <strong>Purchase Request ID:</strong> #PR-@Model.Id
+                    </small>
+                </div>
+
+                <div class="mt-4 d-grid gap-2">
+                    <a href="@Url.Action("Index", "Books")" class="btn btn-outline-secondary">← Back to Marketplace</a>
+                    <button class="btn btn-outline-primary" onclick="window.print()">🖨️ Print These Instructions</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .btn, .alert-info { display: none; }
+    }
+</style>

@@ -68,18 +68,21 @@ namespace Marketplace.Controllers
             _db.Sellers.Add(seller);
             await _db.SaveChangesAsync();
 
+            // Calculate condition rating from yes/no questions
+            var conditionRating = CalculateConditionRating(model);
+
             var book = new Book
             {
                 Title = model.Title,
                 Author = model.Author,
                 Version = model.Version,
                 Price = model.Price,
-                Condition = model.Condition,
+                Condition = conditionRating,
                 Category = model.Category,
                 Location = model.Location,
                 Description = model.Description,
                 SellerId = seller.Id,
-                Status = BookStatus.Active
+                Status = BookStatus.Pending  // Force pending status for WhatsApp verification
             };
             _db.Books.Add(book);
             await _db.SaveChangesAsync();
@@ -101,12 +104,44 @@ namespace Marketplace.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            return RedirectToAction(nameof(Details), new { id = book.Id });
+            // Redirect to listing success page with WhatsApp instructions
+            return RedirectToAction(nameof(ListingSuccess), new { id = book.Id });
+        }
+
+        private BookCondition CalculateConditionRating(BookCreateViewModel model)
+        {
+            // Count issues (weighted by severity)
+            int issues = 0;
+            if (model.IsPagesMissing) issues += 2;  // Most severe
+            if (model.IsWaterDamaged) issues += 2;  // Most severe
+            if (model.IsBindingBroken) issues += 1;
+            if (model.IsCoverTorn) issues += 1;
+            if (model.HasHighlighting) issues += 1;
+
+            // Map to rating (fewer issues = better condition)
+            return issues switch
+            {
+                0 => BookCondition.New,
+                1 => BookCondition.LikeNew,
+                2 or 3 => BookCondition.VeryGood,
+                4 or 5 => BookCondition.Good,
+                _ => BookCondition.Acceptable
+            };
+        }
+
+        public async Task<IActionResult> ListingSuccess(int id)
+        {
+            var book = await _db.Books.FindAsync(id);
+            if (book == null) return NotFound();
+            return View(book);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            var book = await _db.Books.Include(b => b.Seller).ThenInclude(s => s.Contact).Include(b => b.Images)
+            var book = await _db.Books
+                .Include(b => b.Seller).ThenInclude(s => s.Contact)
+                .Include(b => b.Images)
+                .Include(b => b.Bids).ThenInclude(bid => bid.Bidder).ThenInclude(b => b!.Contact)
                 .FirstOrDefaultAsync(b => b.Id == id);
             if (book == null) return NotFound();
             return View(book);

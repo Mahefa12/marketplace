@@ -21,6 +21,7 @@ builder.Services.AddDbContext<Marketplace.Data.MarketplaceDbContext>(options =>
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<Marketplace.Services.IBookService, Marketplace.Services.BookService>();
 builder.Services.AddScoped<Marketplace.Services.IPurchaseService, Marketplace.Services.PurchaseService>();
+builder.Services.AddScoped<Marketplace.Services.INotificationService, Marketplace.Services.NotificationService>();
 
 var app = builder.Build();
 
@@ -50,7 +51,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<Marketplace.Data.MarketplaceDbContext>();
     db.Database.Migrate();
-    await Marketplace.Data.DbSeeder.SeedAsync(db);
+    Marketplace.Data.DbSeeder.SeedAsync(db).GetAwaiter().GetResult();
 }
 
 app.Run();
