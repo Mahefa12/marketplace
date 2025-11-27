@@ -18,4 +18,6 @@ obj/
 
 ## Database
 marketplace.db
-
+marketplace.db-wal
+marketplace.db-shm
+*.db*

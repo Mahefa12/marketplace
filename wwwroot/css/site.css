@@ -241,3 +241,51 @@ body {
 .auth-link a:hover {
   text-decoration: underline;
 }
+
+.btn-primary {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: #333;
+  border-color: #333;
+}
+
+.btn-outline-primary {
+  color: #000;
+  border-color: #000;
+}
+
+.btn-outline-primary:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.btn-outline-secondary {
+  color: #000;
+  border-color: #000;
+}
+
+.btn-outline-secondary:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.page-link {
+  color: #000;
+  border-color: #000;
+}
+
+.page-item.active .page-link {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.page-link:hover {
+  color: #333;
+}

@@ -34,7 +34,7 @@ namespace Marketplace.Controllers
             var myBids = await _db.Bids
                 .Where(b => b.BidderId == userId)
                 .Include(b => b.Book)
-                    .ThenInclude(book => book.Images)
+                    .ThenInclude(book => book!.Images)
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
@@ -42,7 +42,7 @@ namespace Marketplace.Controllers
             var myPurchases = await _db.PurchaseRequests
                 .Where(pr => pr.BuyerId == userId)
                 .Include(pr => pr.Book)
-                    .ThenInclude(book => book.Images)
+                    .ThenInclude(book => book!.Images)
                 .OrderByDescending(pr => pr.CreatedAt)
                 .ToListAsync();
 
