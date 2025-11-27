@@ -289,3 +289,40 @@ body {
 .page-link:hover {
   color: #333;
 }
+
+.card-header.bg-primary,
+.card-header.bg-warning,
+.card-header.bg-success {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.badge.bg-success,
+.badge.bg-info,
+.badge.bg-secondary {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.badge.bg-warning {
+  background: #fff !important;
+  color: #000 !important;
+  border: 1px solid #000;
+}
+
+.btn-warning {
+  background: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+
+.btn-warning:hover {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.table-success {
+  background-color: #f1f3f5 !important;
+  color: #000 !important;
+}
