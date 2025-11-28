@@ -36,8 +36,8 @@ namespace Marketplace.Controllers
             }
             baseQuery = sort switch
             {
-                "price_asc" => baseQuery.OrderBy(b => b.Price),
-                "price_desc" => baseQuery.OrderByDescending(b => b.Price),
+                "price_asc" => baseQuery.OrderBy(b => (double)b.Price),
+                "price_desc" => baseQuery.OrderByDescending(b => (double)b.Price),
                 _ => baseQuery.OrderByDescending(b => b.CreatedAt)
             };
 
