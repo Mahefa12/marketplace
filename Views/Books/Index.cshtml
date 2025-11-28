@@ -19,7 +19,19 @@
         </select>
     </div>
     <div class="col-md-3">
-        <input type="text" class="form-control" name="category" placeholder="Category" value="@Model.Category">
+        <select class="form-select" name="category">
+            <option value="">All Categories</option>
+            <option value="Computer science">Computer science</option>
+            <option value="Communication">Communication</option>
+            <option value="Law">Law</option>
+            <option value="Business Management">Business Management</option>
+            <option value="Finance">Finance</option>
+            <option value="Accounting">Accounting</option>
+            <option value="Medicine">Medicine</option>
+            <option value="Psychology">Psychology</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Other">Other</option>
+        </select>
     </div>
     <div class="col-12">
         <button class="btn btn-outline-secondary" type="submit">Apply</button>
