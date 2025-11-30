@@ -19,7 +19,7 @@ namespace Marketplace.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Save(string? q, string? category)
+        public async Task<IActionResult> Save(string? q, string? category, string? schedule)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
@@ -28,8 +28,13 @@ namespace Marketplace.Controllers
             _db.SavedSearches.Add(ss);
             await _db.SaveChangesAsync();
 
-            // Note: Removed the Message creation for now as it required a valid BookId and was a bit hacky for alerts.
-            // If we need alerts, we should use a proper Notification system or NotificationService.
+            // Send a notification confirming alert setup (schedule is advisory until scheduler is implemented)
+            var note = $"Saved search created{(string.IsNullOrWhiteSpace(schedule) ? string.Empty : $" (alerts: {schedule})")}.";
+            var notifications = HttpContext.RequestServices.GetService(typeof(Marketplace.Services.INotificationService)) as Marketplace.Services.INotificationService;
+            if (notifications != null)
+            {
+                await notifications.NotifyUserAsync(userId, note);
+            }
 
             TempData["Success"] = "Search saved. You will be notified of new items.";
             return RedirectToAction("Index", "Books", new { q, category });

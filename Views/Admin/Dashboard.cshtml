@@ -60,7 +60,7 @@
                                     <div>@(seller?.UserName ?? "Unknown")</div>
                                     <div class="text-muted small">@(seller?.Email ?? "No Email")</div>
                                 </td>
-                                <td class="fw-bold">R@book.Price.ToString("F2")</td>
+                                <td class="fw-bold">R @book.Price.ToString("F2")</td>
                                 <td><span class="badge bg-info">@book.Condition</span></td>
                                 <td class="small">@book.CreatedAt.ToLocalTime().ToString("g")</td>
                                 <td>
@@ -134,7 +134,7 @@
                                     <strong>Buyer:</strong> @(buyer?.UserName ?? "Unknown")<br />
                                     <span class="text-muted small">@(buyer?.Email ?? "No Email")</span>
                                 </td>
-                                <td class="fw-bold">R@pr.OfferPrice</td>
+                                <td class="fw-bold">R @pr.OfferPrice</td>
                                 <td>
                                     <span class="badge bg-danger">BK-@pr.BookId</span>
                                     <small class="d-block text-muted">Look for this ref in bank</small>

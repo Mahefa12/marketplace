@@ -19,35 +19,32 @@
         </select>
     </div>
     <div class="col-md-3">
-        <select class="form-select" name="category">
+        <select class="form-select" name="category" aria-label="Filter by category">
             <option value="">All Categories</option>
-            <option value="Computer science">Computer science</option>
-            <option value="Communication">Communication</option>
-            <option value="Law">Law</option>
-            <option value="Business Management">Business Management</option>
-            <option value="Finance">Finance</option>
-            <option value="Accounting">Accounting</option>
-            <option value="Medicine">Medicine</option>
-            <option value="Psychology">Psychology</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Other">Other</option>
+            @await Html.PartialAsync("_CategoryOptions")
         </select>
     </div>
     <div class="col-12">
         <button class="btn btn-outline-secondary" type="submit">Apply</button>
     </div>
 </form>
-<form asp-controller="SavedSearches" asp-action="Save" method="post" class="row g-2 mb-3">
+<form asp-controller="SavedSearches" asp-action="Save" method="post" class="row g-2 mb-3" aria-label="Save this search">
     <input type="hidden" name="q" value="@Model.Query" />
     <input type="hidden" name="category" value="@Model.Category" />
     <div class="col-md-3">
         <input class="form-control" name="contact.Name" placeholder="Your name" />
     </div>
     <div class="col-md-3">
-        <input class="form-control" name="contact.Email" placeholder="Your email" />
+        <input class="form-control" name="contact.Email" placeholder="Your email" aria-label="Your email" />
     </div>
     <div class="col-md-3">
-        <input class="form-control" name="contact.Phone" placeholder="Your phone" />
+        <input class="form-control" name="contact.Phone" placeholder="Your phone" aria-label="Your phone" />
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" name="schedule" aria-label="Alert schedule">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+        </select>
     </div>
     <div class="col-md-3">
         <button class="btn btn-outline-primary w-100" type="submit">Save This Search</button>
@@ -65,7 +62,7 @@
             <div class="card-body">
                 <h5 class="card-title">@b.Title</h5>
                 <h6 class="card-subtitle mb-2 text-muted">by @b.Author @(!string.IsNullOrWhiteSpace(b.Version) ? $"- {b.Version}" : "")</h6>
-                <p class="card-text"><strong>Price:</strong> @b.Price</p>
+                <p class="card-text"><strong>Price:</strong> R @(b.Price.ToString("F2"))</p>
                 <p class="card-text"><strong>Condition:</strong> @b.Condition</p>
             </div>
             <div class="card-footer bg-white border-0 d-flex gap-2">

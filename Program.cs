@@ -52,6 +52,12 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+app.MapControllerRoute(
+    name: "dashboard",
+    pattern: "dashboard",
+    defaults: new { controller = "Profile", action = "Index" })
+    .WithStaticAssets();
+
 
 using (var scope = app.Services.CreateScope())
 {

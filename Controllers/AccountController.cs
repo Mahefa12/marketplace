@@ -58,10 +58,10 @@ namespace Marketplace.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword, string role)
+        public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) ||
-                string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(role))
+                string.IsNullOrWhiteSpace(password))
             {
                 ViewBag.Error = "All fields are required.";
                 return View();
@@ -78,16 +78,6 @@ namespace Marketplace.Controllers
 
             if (result.Succeeded)
             {
-                // Assign role
-                var roleName = role.ToLower() == "seller" ? "Seller" : "Buyer";
-                // Ensure role exists (handled in seeding usually, but good to be safe or just assume seeding handles it)
-                // For now, we assume roles are seeded or we just add the claim/role.
-                // Identity supports Roles if AddRoles is called. We used AddDefaultIdentity which doesn't add roles by default unless configured.
-                // We should probably update Program.cs to AddRoles<IdentityRole>() if we want to use Roles.
-                // Or just add a claim. The plan mentioned "Assign 'Admin' role".
-
-                await _userManager.AddToRoleAsync(user, roleName);
-
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }

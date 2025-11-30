@@ -36,7 +36,7 @@
                                 <div class="card-body">
                                     <h6 class="card-title">@book.Title</h6>
                                     <p class="card-text small text-muted">@book.Author</p>
-                                    <p class="mb-1"><strong>Price:</strong> R@(book.Price.ToString("F2"))</p>
+                                    <p class="mb-1"><strong>Price:</strong> R @(book.Price.ToString("F2"))</p>
                                     <p class="mb-1"><strong>Status:</strong> <span
                                             class="badge bg-@(book.Status == BookStatus.Active ? "success" : book.Status == BookStatus.Pending ? "warning" : "secondary")">@book.Status</span>
                                     </p>
@@ -84,7 +84,7 @@
                                         <div class="fw-semibold">@bid.Book?.Title</div>
                                         <small class="text-muted">@bid.Book?.Author</small>
                                     </td>
-                                    <td class="fw-bold">R@bid.Amount</td>
+                                    <td class="fw-bold">R @bid.Amount</td>
                                     <td class="small">@bid.CreatedAt.ToLocalTime().ToString("g")</td>
                                     <td>
                                         @if (bid.IsAccepted)
@@ -147,7 +147,7 @@
                                         <div class="fw-semibold">@pr.Book?.Title</div>
                                         <small class="text-muted">@pr.Book?.Author</small>
                                     </td>
-                                    <td class="fw-bold">R@pr.OfferPrice</td>
+                                    <td class="fw-bold">R @pr.OfferPrice</td>
                                     <td>
                                         <span
                                             class="badge bg-@(pr.Status == PurchaseRequestStatus.Completed ? "success" : pr.Status == PurchaseRequestStatus.Paid ? "info" : pr.Status == PurchaseRequestStatus.AwaitingPayment ? "warning" : "secondary")">@pr.Status</span>

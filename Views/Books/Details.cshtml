@@ -32,7 +32,7 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <p><strong>Starting Price:</strong> R@(Model.Price.ToString("F2"))</p>
+                        <p><strong>Starting Price:</strong> R @(Model.Price.ToString("F2"))</p>
                         <p><strong>Condition:</strong> <span class="badge bg-info">@Model.Condition</span></p>
                         <p><strong>Category:</strong> @Model.Category</p>
                         <p><strong>Location:</strong> @Model.Location</p>
@@ -47,7 +47,7 @@
                                 <div class="card-body">
                                     <h6 class="card-title">💰 Bidding Information</h6>
                                     <p class="mb-1"><strong>Current Highest Bid:</strong> <span
-                                            class="text-success h5">R@highestBid</span></p>
+                                            class="text-success h5">R @highestBid</span></p>
                                     <p class="mb-0 small text-muted">@bidCount bid(s) received</p>
                                 </div>
                             </div>
@@ -115,7 +115,7 @@
                                                 <span class="text-muted fst-italic">Student Bidder</span>
                                             }
                                         </td>
-                                        <td class="fw-bold">R@bid.Amount</td>
+                                        <td class="fw-bold">R @bid.Amount</td>
                                         <td class="small">@bid.CreatedAt.ToLocalTime().ToString("g")</td>
                                         <td>
                                             @if (bid.IsAccepted)
@@ -155,7 +155,7 @@
                             <h6>🛒 Buy Now</h6>
                             <button type="button" class="btn btn-primary w-100" data-bs-toggle="collapse"
                                 data-bs-target="#buyNowForm">
-                                Buy at R@(Model.Price.ToString("F2"))
+                                Buy at R @(Model.Price.ToString("F2"))
                             </button>
 
                             <div class="collapse mt-3" id="buyNowForm">
@@ -174,7 +174,7 @@
                             <h6>💵 Place a Bid</h6>
                             <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="collapse"
                                 data-bs-target="#bidForm">
-                                Place Bid (Min: R@(highestBid + 10))
+                                Place Bid (Min: R @(highestBid + 10))
                             </button>
 
                             <div class="collapse mt-3" id="bidForm">
@@ -182,7 +182,7 @@
                                     <form asp-controller="Bids" asp-action="PlaceBid" method="post">
                                         <input type="hidden" name="bookId" value="@Model.Id" />
                                         <div class="mb-2">
-                                            <label class="form-label small">Bid Amount (Min: R@(highestBid + 10))</label>
+                                            <label class="form-label small">Bid Amount (Min: R @(highestBid + 10))</label>
                                             <input type="number" step="0.01" name="amount"
                                                 class="form-control form-control-sm" min="@(highestBid + 10)" required />
                                         </div>
@@ -222,9 +222,25 @@
                             <button class="btn btn-outline-danger btn-sm" type="submit">Mark Sold</button>
                         </form>
                     }
-                    <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Back to Listings</a>
-                </div>
+                <a class="btn btn-outline-secondary btn-sm" asp-action="Index">Back to Listings</a>
             </div>
         </div>
     </div>
+</div>
+<div class="row mt-3">
+    <div class="col-lg-8 mx-auto">
+        <div class="card border-0">
+            <div class="card-body">
+                <form asp-controller="Reports" asp-action="Create" method="post" aria-label="Report listing">
+                    <input type="hidden" name="bookId" value="@Model.Id" />
+                    <div class="mb-2">
+                        <label class="form-label">Report reason</label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="Describe the issue"></textarea>
+                    </div>
+                    <button class="btn btn-outline-danger btn-sm" type="submit">Report Listing</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
