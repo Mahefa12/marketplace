@@ -3,11 +3,104 @@
 }
 
 <div class="hero-landing">
-    <div class="text-center">
+    <div class="hero-card"><div class="text-center">
         <h1 class="hero-title">The Student Marketplace</h1>
         <div class="d-flex justify-content-center flex-wrap gap-3">
             <a class="cta-button-buying" asp-controller="Books" asp-action="Index">I'm Buying</a>
             <a class="cta-button-selling" asp-controller="Books" asp-action="Create">I'm Selling</a>
+        </div>
+    </div></div>
+</div>
+
+<div class="landing-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2 class="landing-heading">What is UniMarket?</h2>
+                <p class="landing-lead">A simple, safe place for students to buy and sell textbooks and study materials. Browse listings, place bids or purchase requests, and manage your activity from your dashboard.</p>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-3">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h5>Browse and Filter</h5>
+                    <p>Search by title, author, category, price and condition. Save searches and get notified.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h5>Sell in Minutes</h5>
+                    <p>Create a listing with images, price and condition. Manage status and edit any time.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h5>Secure Accounts</h5>
+                    <p>Login with your account, track bids, purchases and notifications in one place.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-4">
+            <div class="col-md-6">
+                <div class="how-card">
+                    <h5>How Buying Works</h5>
+                    <ul class="step-list">
+                        <li>Browse books and open details</li>
+                        <li>Submit a purchase request or place a bid</li>
+                        <li>Track status in your dashboard</li>
+                        <li>Follow payment instructions when accepted</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="how-card">
+                    <h5>How Selling Works</h5>
+                    <ul class="step-list">
+                        <li>Create a listing with photos and details</li>
+                        <li>Receive bids and purchase requests</li>
+                        <li>Update status to Pending, Active or Sold</li>
+                        <li>Communicate and complete the sale</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-4">
+            <div class="col-lg-8 mx-auto">
+                <div class="get-started">
+                    <h5>Get Started</h5>
+                    <div class="d-flex flex-column flex-md-row gap-3">
+                        <div class="gs-step">
+                            <div class="gs-number">1</div>
+                            <div>
+                                <div class="gs-title">Create your account</div>
+                                <div class="gs-text">Register or log in to access your dashboard.</div>
+                            </div>
+                        </div>
+                        <div class="gs-step">
+                            <div class="gs-number">2</div>
+                            <div>
+                                <div class="gs-title">Browse listings</div>
+                                <div class="gs-text">Use filters and categories to find the right book.</div>
+                            </div>
+                        </div>
+                        <div class="gs-step">
+                            <div class="gs-number">3</div>
+                            <div>
+                                <div class="gs-title">Sell a book</div>
+                                <div class="gs-text">Create a listing in minutes and start receiving offers.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Register</a>
+                        <a class="btn btn-outline-primary" asp-controller="Books" asp-action="Index">Browse Books</a>
+                        <a class="btn btn-outline-secondary" asp-controller="Books" asp-action="Create">List a Book</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
