@@ -34,7 +34,7 @@ namespace Marketplace.Controllers
             // Add awaiting payment purchases
             var awaitingPayment = await _db.PurchaseRequests
                 .Include(pr => pr.Book)
-                .Where(pr => pr.Status == Models.PurchaseRequestStatus.AwaitingPayment)
+                .Where(pr => pr.Status == Models.PurchaseRequestStatus.AwaitingPayment || pr.Status == Models.PurchaseRequestStatus.New)
                 .OrderByDescending(pr => pr.CreatedAt)
                 .ToListAsync();
 

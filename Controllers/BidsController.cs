@@ -33,9 +33,15 @@ namespace Marketplace.Controllers
             // Get current highest bid or starting price
             var currentHighest = book.Bids.Any()
                 ? book.Bids.Max(b => b.Amount)
-                : book.Price;
+                : 0m;
 
             // Validate bid amount
+            if (amount >= book.Price)
+            {
+                TempData["Error"] = "Bid cannot equal or exceed the Buy Now Price. Please use the 'Buy Now' option instead.";
+                return RedirectToAction("Details", "Books", new { id = bookId });
+            }
+
             if (amount < currentHighest + MinimumBidIncrement)
             {
                 TempData["Error"] = $"Bid must be at least R{currentHighest + MinimumBidIncrement:F2} (R10 above current highest)";

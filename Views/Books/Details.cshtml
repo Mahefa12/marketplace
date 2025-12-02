@@ -3,7 +3,7 @@
 @inject UserManager<IdentityUser> UserManager
 @{
     ViewData["Title"] = "Book Details";
-    var highestBid = Model.Bids.Any() ? Model.Bids.Max(b => b.Amount) : Model.Price;
+    var highestBid = Model.Bids.Any() ? Model.Bids.Max(b => b.Amount) : 0m;
     var bidCount = Model.Bids.Count();
     var seller = ViewData["Seller"] as IdentityUser;
 }
@@ -32,7 +32,7 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <p><strong>Starting Price:</strong> R @(Model.Price.ToString("F2"))</p>
+                        <p><strong>Buy Now Price:</strong> R @(Model.Price.ToString("F2"))</p>
                         <p><strong>Condition:</strong> <span class="badge bg-info">@Model.Condition</span></p>
                         <p><strong>Category:</strong> @Model.Category</p>
                         <p><strong>Location:</strong> @Model.Location</p>
@@ -128,7 +128,7 @@
                                             }
                                         </td>
                                         <td>
-                                            @if (!bid.IsAccepted && bid.Amount == highestBid)
+                                            @if (!bid.IsAccepted && bid.Amount == highestBid && User.Identity?.IsAuthenticated == true && Model.SellerId == UserManager.GetUserId(User))
                                             {
                                                 <form asp-controller="Bids" asp-action="AcceptBid" method="post" class="d-inline">
                                                     <input type="hidden" name="id" value="@bid.Id" />
@@ -151,46 +151,61 @@
                 @if (Model.Status == Marketplace.Models.BookStatus.Active)
                 {
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <h6>🛒 Buy Now</h6>
-                            <button type="button" class="btn btn-primary w-100" data-bs-toggle="collapse"
-                                data-bs-target="#buyNowForm">
-                                Buy at R @(Model.Price.ToString("F2"))
-                            </button>
+                        @if (Model.SellerId != UserManager.GetUserId(User))
+                        {
+                            <div class="col-md-6">
+                                <h6>🛒 Buy Now</h6>
+                                <button type="button" class="btn btn-primary w-100" data-bs-toggle="collapse"
+                                    data-bs-target="#buyNowForm">
+                                    Buy at R @(Model.Price.ToString("F2"))
+                                </button>
 
-                            <div class="collapse mt-3" id="buyNowForm">
-                                <div class="card card-body">
-                                    <form asp-controller="Purchase" asp-action="BuyNow" method="post">
-                                        <input type="hidden" name="bookId" value="@Model.Id" />
-                                        <p class="small text-muted mb-2">Clicking proceed will send a purchase request to
-                                            the admin.</p>
-                                        <button type="submit" class="btn btn-sm btn-primary w-100">Proceed to
-                                            Payment</button>
-                                    </form>
+                                <div class="collapse mt-3" id="buyNowForm">
+                                    <div class="card card-body">
+                                        <form asp-controller="Purchase" asp-action="BuyNow" method="post">
+                                            <input type="hidden" name="bookId" value="@Model.Id" />
+                                            <p class="small text-muted mb-2">Clicking proceed will send a purchase request to
+                                                the admin.</p>
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">Proceed to
+                                                Payment</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>💵 Place a Bid</h6>
-                            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="collapse"
-                                data-bs-target="#bidForm">
-                                Place Bid (Min: R @(highestBid + 10))
-                            </button>
+                            <div class="col-md-6">
+                                <h6>💵 Place a Bid</h6>
+                                <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="collapse"
+                                    data-bs-target="#bidForm">
+                                    Place Bid (Min: R @(Model.Bids.Any() ? highestBid + 10 : 10))
+                                </button>
 
-                            <div class="collapse mt-3" id="bidForm">
-                                <div class="card card-body">
-                                    <form asp-controller="Bids" asp-action="PlaceBid" method="post">
-                                        <input type="hidden" name="bookId" value="@Model.Id" />
-                                        <div class="mb-2">
-                                            <label class="form-label small">Bid Amount (Min: R @(highestBid + 10))</label>
-                                            <input type="number" step="0.01" name="amount"
-                                                class="form-control form-control-sm" min="@(highestBid + 10)" required />
-                                        </div>
-                                        <button type="submit" class="btn btn-sm btn-primary w-100">Submit Bid</button>
-                                    </form>
+                                <div class="collapse mt-3" id="bidForm">
+                                    <div class="card card-body">
+                                        <form asp-controller="Bids" asp-action="PlaceBid" method="post">
+                                            <input type="hidden" name="bookId" value="@Model.Id" />
+                                            <div class="mb-2">
+                                                <label class="form-label small">Bid Amount (Min: R @(Model.Bids.Any() ? highestBid + 10 : 10))</label>
+                                                <input type="number" step="0.01" name="amount"
+                                                    class="form-control form-control-sm" 
+                                                    min="@(Model.Bids.Any() ? highestBid + 10 : 10)" 
+                                                    max="@(Model.Price - 0.01m)"
+                                                    required />
+                                                <div class="form-text x-small">Max bid: R @(Model.Price - 0.01m)</div>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">Submit Bid</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="col-12">
+                                <div class="alert alert-info mb-0">
+                                    <strong>Manage Listing:</strong> You are the seller of this item. You cannot buy or bid on your own listing.
+                                </div>
+                            </div>
+                        }
                     </div>
                 }
                 else if (Model.Status == Marketplace.Models.BookStatus.Reserved)

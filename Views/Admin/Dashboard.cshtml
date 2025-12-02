@@ -93,7 +93,7 @@
 }
 <div class="card mb-4">
     <div class="card-header bg-info text-white">
-        <h5 class="mb-0">💳 Awaiting Payment Confirmation (@awaitingPayment.Count())</h5>
+        <h5 class="mb-0">💳 Awaiting Confirmation (@awaitingPayment.Count())</h5>
     </div>
     <div class="card-body">
         @if (!awaitingPayment.Any())
@@ -107,6 +107,7 @@
                     <thead>
                         <tr>
                             <th>Request ID</th>
+                            <th>Status</th>
                             <th>Book</th>
                             <th>Buyer</th>
                             <th>Amount</th>
@@ -122,6 +123,16 @@
                             var buyer = await UserManager.FindByIdAsync(pr.BuyerId);
                             <tr>
                                 <td><span class="badge bg-secondary">#PR-@pr.Id</span></td>
+                                <td>
+                                    @if (pr.Status == Marketplace.Models.PurchaseRequestStatus.New)
+                                    {
+                                        <span class="badge bg-primary">New (Bid Accepted)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Awaiting Payment</span>
+                                    }
+                                </td>
                                 <td>
                                     <div class="fw-semibold">@pr.Book?.Title</div>
                                     <div class="text-muted small">by @pr.Book?.Author</div>

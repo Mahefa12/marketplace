@@ -54,7 +54,7 @@ namespace Marketplace.Data
                     Category = s.Category,
                     Location = s.Location,
                     Description = s.Description,
-                    SellerId = sellerUser.Id, // Use seeded seller ID
+                    SellerId = buyerUser.Id, // Use seeded buyer ID for testing
                     Status = BookStatus.Active,
                     CreatedAt = DateTime.UtcNow.AddDays(-rnd.Next(0, 60))
                 };
