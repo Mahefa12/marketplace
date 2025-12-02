@@ -1,16 +1,19 @@
 using System.Threading.Tasks;
 using Marketplace.Data;
 using Marketplace.Models;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Marketplace.Services
 {
     public class NotificationService : INotificationService
     {
         private readonly MarketplaceDbContext _db;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<Marketplace.Hubs.NotificationHub> _hubContext;
 
-        public NotificationService(MarketplaceDbContext db)
+        public NotificationService(MarketplaceDbContext db, Microsoft.AspNetCore.SignalR.IHubContext<Marketplace.Hubs.NotificationHub> hubContext)
         {
             _db = db;
+            _hubContext = hubContext;
         }
 
         public async Task NotifyUserAsync(string userId, string message, int? bookId = null)
@@ -25,6 +28,9 @@ namespace Marketplace.Services
 
             _db.Notifications.Add(notification);
             await _db.SaveChangesAsync();
+
+            // Send real-time notification
+            await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", message, bookId);
         }
 
         public async Task MarkAsReadAsync(int notificationId)

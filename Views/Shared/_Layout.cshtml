@@ -118,6 +118,44 @@
         </div>
     }
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Real-time Notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="notificationToastContainer"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub")
+            .build();
+
+        connection.on("ReceiveNotification", function (message, bookId) {
+            // Show Toast
+            const toastHtml = `
+                <div class="toast show align-items-center text-bg-primary border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            🔔 ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            const container = document.getElementById("notificationToastContainer");
+            if (container) {
+                container.insertAdjacentHTML('beforeend', toastHtml);
+            }
+
+            // Update Badge
+            const badge = document.querySelector(".nav-link .badge");
+            if (badge) {
+                let count = parseInt(badge.innerText);
+                badge.innerText = count + 1;
+            }
+        });
+
+        connection.start().catch(function (err) {
+            console.error(err.toString());
+        });
+    </script>
 </body>
 
 </html>

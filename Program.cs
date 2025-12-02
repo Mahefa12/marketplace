@@ -28,6 +28,7 @@ builder.Services.AddMemoryCache();
 
 
 builder.Services.AddScoped<Marketplace.Services.INotificationService, Marketplace.Services.NotificationService>();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -57,6 +58,8 @@ app.MapControllerRoute(
     pattern: "dashboard",
     defaults: new { controller = "Profile", action = "Index" })
     .WithStaticAssets();
+
+app.MapHub<Marketplace.Hubs.NotificationHub>("/notificationHub");
 
 
 using (var scope = app.Services.CreateScope())

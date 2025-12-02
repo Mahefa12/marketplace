@@ -12,11 +12,13 @@ namespace Marketplace.Controllers
     public class BidsController : Controller
     {
         private readonly MarketplaceDbContext _db;
+        private readonly Services.INotificationService _notifications;
         private const decimal MinimumBidIncrement = 10m;
 
-        public BidsController(MarketplaceDbContext db)
+        public BidsController(MarketplaceDbContext db, Services.INotificationService notifications)
         {
             _db = db;
+            _notifications = notifications;
         }
 
         [HttpPost]
@@ -51,6 +53,11 @@ namespace Marketplace.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
 
+            // Get previous highest bidder (if any)
+            var previousHighestBid = book.Bids
+                .Where(b => b.Amount == currentHighest)
+                .FirstOrDefault();
+
             // Create bid
             var bid = new Bid
             {
@@ -61,6 +68,21 @@ namespace Marketplace.Controllers
 
             _db.Bids.Add(bid);
             await _db.SaveChangesAsync();
+
+            // Notify seller about new bid
+            await _notifications.NotifyUserAsync(
+                book.SellerId,
+                $"New bid of R{amount:F2} placed on your book '{book.Title}'!",
+                bookId);
+
+            // Notify previous highest bidder that they've been outbid
+            if (previousHighestBid != null && previousHighestBid.BidderId != userId)
+            {
+                await _notifications.NotifyUserAsync(
+                    previousHighestBid.BidderId,
+                    $"You've been outbid on '{book.Title}'! New highest bid: R{amount:F2}",
+                    bookId);
+            }
 
             TempData["Success"] = $"Your bid of R{amount:F2} has been placed successfully!";
             return RedirectToAction("Details", "Books", new { id = bookId });
@@ -102,6 +124,12 @@ namespace Marketplace.Controllers
             bid.Book!.Status = BookStatus.Reserved;
 
             await _db.SaveChangesAsync();
+
+            // Notify buyer that their bid was accepted
+            await _notifications.NotifyUserAsync(
+                bid.BidderId,
+                $"Congratulations! Your bid of R{bid.Amount:F2} for '{bid.Book.Title}' was accepted!",
+                bid.BookId);
 
             TempData["Success"] = "Bid accepted! Buyer will be contacted for payment arrangement.";
             return RedirectToAction("Details", "Books", new { id = bid.BookId });
