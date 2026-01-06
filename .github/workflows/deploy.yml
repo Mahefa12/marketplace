@@ -1,0 +1,43 @@
+name: Deploy to MonsterASP (Web Deploy)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    env:
+      WEBDEPLOY_URL: ${{ secrets.WEBDEPLOY_URL }}
+      WEBDEPLOY_SITE: ${{ secrets.WEBDEPLOY_SITE }}
+      WEBDEPLOY_USERNAME: ${{ secrets.WEBDEPLOY_USERNAME }}
+      WEBDEPLOY_PASSWORD: ${{ secrets.WEBDEPLOY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install Web Deploy (msdeploy)
+        run: |
+          choco install webdeploy -y
+
+      - name: Build and Deploy via MSBuild
+        shell: pwsh
+        run: |
+          dotnet msbuild Marketplace.csproj `
+            /p:Configuration=Release `
+            /p:DeployOnBuild=true `
+            /p:WebPublishMethod=MSDeploy `
+            /p:MSDeployServiceURL="${env:WEBDEPLOY_URL}" `
+            /p:MSDeploySite="${env:WEBDEPLOY_SITE}" `
+            /p:UserName="${env:WEBDEPLOY_USERNAME}" `
+            /p:Password="${env:WEBDEPLOY_PASSWORD}" `
+            /p:AllowUntrustedCertificate=true `
+            /p:SkipExtraFilesOnServer=true `
+            /p:DeleteExistingFiles=false `
+            /p:EnableMSDeployAppOffline=true
